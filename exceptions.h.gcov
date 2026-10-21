@@ -1,0 +1,81 @@
+        -:    0:Source:/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__new/exceptions.h
+        -:    0:Graph:build-cov/CMakeFiles/ptxra_core.dir/src/lexer/Lexer.cpp.gcno
+        -:    0:Data:build-cov/CMakeFiles/ptxra_core.dir/src/lexer/Lexer.cpp.gcda
+        -:    0:Runs:1
+        -:    1://===----------------------------------------------------------------------===//
+        -:    2://
+        -:    3:// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+        -:    4:// See https://llvm.org/LICENSE.txt for license information.
+        -:    5:// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+        -:    6://
+        -:    7://===----------------------------------------------------------------------===//
+        -:    8:
+        -:    9:#ifndef _LIBCPP___NEW_EXCEPTIONS_H
+        -:   10:#define _LIBCPP___NEW_EXCEPTIONS_H
+        -:   11:
+        -:   12:#include <__config>
+        -:   13:#include <__exception/exception.h>
+        -:   14:#include <__verbose_abort>
+        -:   15:#include <stdlib.h>
+        -:   16:
+        -:   17:#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+        -:   18:#  pragma GCC system_header
+        -:   19:#endif
+        -:   20:
+        -:   21:_LIBCPP_BEGIN_UNVERSIONED_NAMESPACE_STD
+        -:   22:#if !defined(_LIBCPP_ABI_VCRUNTIME)
+        -:   23:
+        -:   24:class _LIBCPP_EXPORTED_FROM_ABI bad_alloc : public exception {
+        -:   25:public:
+        -:   26:  bad_alloc() _NOEXCEPT;
+        -:   27:  _LIBCPP_HIDE_FROM_ABI bad_alloc(const bad_alloc&) _NOEXCEPT            = default;
+        -:   28:  _LIBCPP_HIDE_FROM_ABI bad_alloc& operator=(const bad_alloc&) _NOEXCEPT = default;
+        -:   29:  ~bad_alloc() _NOEXCEPT override;
+        -:   30:  const char* what() const _NOEXCEPT override;
+        -:   31:};
+        -:   32:
+        -:   33:class _LIBCPP_EXPORTED_FROM_ABI bad_array_new_length : public bad_alloc {
+        -:   34:public:
+        -:   35:  bad_array_new_length() _NOEXCEPT;
+        -:   36:  _LIBCPP_HIDE_FROM_ABI bad_array_new_length(const bad_array_new_length&) _NOEXCEPT            = default;
+        -:   37:  _LIBCPP_HIDE_FROM_ABI bad_array_new_length& operator=(const bad_array_new_length&) _NOEXCEPT = default;
+        -:   38:  ~bad_array_new_length() _NOEXCEPT override;
+        -:   39:  const char* what() const _NOEXCEPT override;
+        -:   40:};
+        -:   41:
+        -:   42:#elif defined(_HAS_EXCEPTIONS) && _HAS_EXCEPTIONS == 0 // !_LIBCPP_ABI_VCRUNTIME
+        -:   43:
+        -:   44:// When _HAS_EXCEPTIONS == 0, these complete definitions are needed,
+        -:   45:// since they would normally be provided in vcruntime_exception.h
+        -:   46:class bad_alloc : public exception {
+        -:   47:public:
+        -:   48:  bad_alloc() noexcept : exception("bad allocation") {}
+        -:   49:
+        -:   50:private:
+        -:   51:  friend class bad_array_new_length;
+        -:   52:
+        -:   53:  bad_alloc(char const* const __message) noexcept : exception(__message) {}
+        -:   54:};
+        -:   55:
+        -:   56:class bad_array_new_length : public bad_alloc {
+        -:   57:public:
+        -:   58:  bad_array_new_length() noexcept : bad_alloc("bad array new length") {}
+        -:   59:};
+        -:   60:
+        -:   61:#endif // defined(_LIBCPP_ABI_VCRUNTIME) && defined(_HAS_EXCEPTIONS) && _HAS_EXCEPTIONS == 0
+        -:   62:
+        -:   63:[[__noreturn__]] _LIBCPP_EXPORTED_FROM_ABI void __throw_bad_alloc(); // not in C++ spec
+        -:   64:
+    #####:   65:[[__noreturn__]] inline _LIBCPP_HIDE_FROM_ABI void __throw_bad_array_new_length() {
+        -:   66:#if _LIBCPP_HAS_EXCEPTIONS
+    #####:   67:  throw bad_array_new_length();
+        -:   68:#else
+        -:   69:  //_LIBCPP_VERBOSE_ABORT("bad_array_new_length was thrown in -fno-exceptions mode");
+        -:   70:  // Workaround to prevent having to link against `libc++.dylib`. While all users should be
+        -:   71:  // linking against it, in practice this can be tricky and can require a migration period.
+        -:   72:  ::abort();
+        -:   73:#endif
+        -:   74:}
+        -:   75:_LIBCPP_END_UNVERSIONED_NAMESPACE_STD
+        -:   76:
+        -:   77:#endif // _LIBCPP___NEW_EXCEPTIONS_H

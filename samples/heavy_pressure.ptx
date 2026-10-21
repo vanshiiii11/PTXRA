@@ -1,0 +1,91 @@
+.version 7.5
+.target sm_80
+.address_size 64
+
+.visible .entry heavy_pressure(
+    .param .u64 in,
+    .param .u64 out,
+    .param .u32 iters
+)
+{
+    .reg .pred %p<2>;
+    .reg .b32 %r<6>;
+    .reg .b64 %rd<8>;
+    .reg .f32 %f<25>;
+
+    ld.param.u32 %r0, [iters];
+    mov.u32 %r1, %ctaid.x;
+    mov.u32 %r2, %ntid.x;
+    mov.u32 %r3, %tid.x;
+    mad.lo.s32 %r4, %r1, %r2, %r3;
+
+    ld.param.u64 %rd0, [in];
+    ld.param.u64 %rd1, [out];
+
+    mul.wide.s32 %rd2, %r4, 4;
+    add.s64 %rd3, %rd0, %rd2;
+
+    ld.global.f32 %f0, [%rd3+0];
+    ld.global.f32 %f1, [%rd3+4];
+    ld.global.f32 %f2, [%rd3+8];
+    ld.global.f32 %f3, [%rd3+12];
+    ld.global.f32 %f4, [%rd3+16];
+    ld.global.f32 %f5, [%rd3+20];
+    ld.global.f32 %f6, [%rd3+24];
+    ld.global.f32 %f7, [%rd3+28];
+    ld.global.f32 %f8, [%rd3+32];
+    ld.global.f32 %f9, [%rd3+36];
+    ld.global.f32 %f10, [%rd3+40];
+    ld.global.f32 %f11, [%rd3+44];
+    ld.global.f32 %f12, [%rd3+48];
+    ld.global.f32 %f13, [%rd3+52];
+    ld.global.f32 %f14, [%rd3+56];
+    ld.global.f32 %f15, [%rd3+60];
+
+    mov.u32 %r5, 0;
+
+L_loop:
+    setp.ge.s32 %p0, %r5, %r0;
+    @%p0 bra L_loop_end;
+
+    fma.rn.f32 %f0, %f1, 1.01, %f0;
+    fma.rn.f32 %f1, %f2, 1.02, %f1;
+    fma.rn.f32 %f2, %f3, 1.03, %f2;
+    fma.rn.f32 %f3, %f4, 1.04, %f3;
+    fma.rn.f32 %f4, %f5, 1.05, %f4;
+    fma.rn.f32 %f5, %f6, 1.06, %f5;
+    fma.rn.f32 %f6, %f7, 1.07, %f6;
+    fma.rn.f32 %f7, %f8, 1.08, %f7;
+    fma.rn.f32 %f8, %f9, 1.09, %f8;
+    fma.rn.f32 %f9, %f10, 1.10, %f9;
+    fma.rn.f32 %f10, %f11, 1.11, %f10;
+    fma.rn.f32 %f11, %f12, 1.12, %f11;
+    fma.rn.f32 %f12, %f13, 1.13, %f12;
+    fma.rn.f32 %f13, %f14, 1.14, %f13;
+    fma.rn.f32 %f14, %f15, 1.15, %f14;
+    fma.rn.f32 %f15, %f0, 1.16, %f15;
+
+    add.s32 %r5, %r5, 1;
+    bra L_loop;
+
+L_loop_end:
+    add.f32 %f16, %f0, %f1;
+    add.f32 %f16, %f16, %f2;
+    add.f32 %f16, %f16, %f3;
+    add.f32 %f16, %f16, %f4;
+    add.f32 %f16, %f16, %f5;
+    add.f32 %f16, %f16, %f6;
+    add.f32 %f16, %f16, %f7;
+    add.f32 %f16, %f16, %f8;
+    add.f32 %f16, %f16, %f9;
+    add.f32 %f16, %f16, %f10;
+    add.f32 %f16, %f16, %f11;
+    add.f32 %f16, %f16, %f12;
+    add.f32 %f16, %f16, %f13;
+    add.f32 %f16, %f16, %f14;
+    add.f32 %f16, %f16, %f15;
+
+    add.s64 %rd4, %rd1, %rd2;
+    st.global.f32 [%rd4], %f16;
+    ret;
+}

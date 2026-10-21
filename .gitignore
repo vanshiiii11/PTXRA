@@ -1,0 +1,7 @@
+build/
+build-*/
+.venv/
+*.gcda
+*.gcno
+.DS_Store
+EOF

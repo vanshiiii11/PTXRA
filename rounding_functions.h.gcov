@@ -1,0 +1,249 @@
+        -:    0:Source:/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__math/rounding_functions.h
+        -:    0:Graph:build-cov/CMakeFiles/ptxra_core.dir/src/lexer/Lexer.cpp.gcno
+        -:    0:Data:build-cov/CMakeFiles/ptxra_core.dir/src/lexer/Lexer.cpp.gcda
+        -:    0:Runs:1
+        -:    1://===----------------------------------------------------------------------===//
+        -:    2://
+        -:    3:// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+        -:    4:// See https://llvm.org/LICENSE.txt for license information.
+        -:    5:// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+        -:    6://
+        -:    7://===----------------------------------------------------------------------===//
+        -:    8:
+        -:    9:#ifndef _LIBCPP___MATH_ROUNDING_FUNCTIONS_H
+        -:   10:#define _LIBCPP___MATH_ROUNDING_FUNCTIONS_H
+        -:   11:
+        -:   12:#include <__config>
+        -:   13:#include <__type_traits/enable_if.h>
+        -:   14:#include <__type_traits/is_arithmetic.h>
+        -:   15:#include <__type_traits/is_integral.h>
+        -:   16:#include <__type_traits/is_same.h>
+        -:   17:#include <__type_traits/promote.h>
+        -:   18:
+        -:   19:#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+        -:   20:#  pragma GCC system_header
+        -:   21:#endif
+        -:   22:
+        -:   23:_LIBCPP_BEGIN_NAMESPACE_STD
+        -:   24:
+        -:   25:namespace __math {
+        -:   26:
+        -:   27:// ceil
+        -:   28:
+     2598:   29:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI float ceil(float __x) _NOEXCEPT { return __builtin_ceilf(__x); }
+        -:   30:
+        -:   31:template <class = int>
+        -:   32:[[__nodiscard__]] _LIBCPP_HIDE_FROM_ABI double ceil(double __x) _NOEXCEPT {
+        -:   33:  return __builtin_ceil(__x);
+        -:   34:}
+        -:   35:
+        -:   36:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI long double ceil(long double __x) _NOEXCEPT {
+        -:   37:  return __builtin_ceill(__x);
+        -:   38:}
+        -:   39:
+        -:   40:template <class _A1, __enable_if_t<is_integral<_A1>::value, int> = 0>
+        -:   41:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI double ceil(_A1 __x) _NOEXCEPT {
+        -:   42:  return __builtin_ceil((double)__x);
+        -:   43:}
+        -:   44:
+        -:   45:// floor
+        -:   46:
+        -:   47:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI float floor(float __x) _NOEXCEPT { return __builtin_floorf(__x); }
+        -:   48:
+        -:   49:template <class = int>
+        -:   50:[[__nodiscard__]] _LIBCPP_HIDE_FROM_ABI double floor(double __x) _NOEXCEPT {
+        -:   51:  return __builtin_floor(__x);
+        -:   52:}
+        -:   53:
+        -:   54:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI long double floor(long double __x) _NOEXCEPT {
+        -:   55:  return __builtin_floorl(__x);
+        -:   56:}
+        -:   57:
+        -:   58:template <class _A1, __enable_if_t<is_integral<_A1>::value, int> = 0>
+        -:   59:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI double floor(_A1 __x) _NOEXCEPT {
+        -:   60:  return __builtin_floor((double)__x);
+        -:   61:}
+        -:   62:
+        -:   63:// llrint
+        -:   64:
+        -:   65:inline _LIBCPP_HIDE_FROM_ABI long long llrint(float __x) _NOEXCEPT { return __builtin_llrintf(__x); }
+        -:   66:
+        -:   67:template <class = int>
+        -:   68:_LIBCPP_HIDE_FROM_ABI long long llrint(double __x) _NOEXCEPT {
+        -:   69:  return __builtin_llrint(__x);
+        -:   70:}
+        -:   71:
+        -:   72:inline _LIBCPP_HIDE_FROM_ABI long long llrint(long double __x) _NOEXCEPT { return __builtin_llrintl(__x); }
+        -:   73:
+        -:   74:template <class _A1, __enable_if_t<is_integral<_A1>::value, int> = 0>
+        -:   75:inline _LIBCPP_HIDE_FROM_ABI long long llrint(_A1 __x) _NOEXCEPT {
+        -:   76:  return __builtin_llrint((double)__x);
+        -:   77:}
+        -:   78:
+        -:   79:// llround
+        -:   80:
+        -:   81:inline _LIBCPP_HIDE_FROM_ABI long long llround(float __x) _NOEXCEPT { return __builtin_llroundf(__x); }
+        -:   82:
+        -:   83:template <class = int>
+        -:   84:_LIBCPP_HIDE_FROM_ABI long long llround(double __x) _NOEXCEPT {
+        -:   85:  return __builtin_llround(__x);
+        -:   86:}
+        -:   87:
+        -:   88:inline _LIBCPP_HIDE_FROM_ABI long long llround(long double __x) _NOEXCEPT { return __builtin_llroundl(__x); }
+        -:   89:
+        -:   90:template <class _A1, __enable_if_t<is_integral<_A1>::value, int> = 0>
+        -:   91:inline _LIBCPP_HIDE_FROM_ABI long long llround(_A1 __x) _NOEXCEPT {
+        -:   92:  return __builtin_llround((double)__x);
+        -:   93:}
+        -:   94:
+        -:   95:// lrint
+        -:   96:
+        -:   97:inline _LIBCPP_HIDE_FROM_ABI long lrint(float __x) _NOEXCEPT { return __builtin_lrintf(__x); }
+        -:   98:
+        -:   99:template <class = int>
+        -:  100:_LIBCPP_HIDE_FROM_ABI long lrint(double __x) _NOEXCEPT {
+        -:  101:  return __builtin_lrint(__x);
+        -:  102:}
+        -:  103:
+        -:  104:inline _LIBCPP_HIDE_FROM_ABI long lrint(long double __x) _NOEXCEPT { return __builtin_lrintl(__x); }
+        -:  105:
+        -:  106:template <class _A1, __enable_if_t<is_integral<_A1>::value, int> = 0>
+        -:  107:inline _LIBCPP_HIDE_FROM_ABI long lrint(_A1 __x) _NOEXCEPT {
+        -:  108:  return __builtin_lrint((double)__x);
+        -:  109:}
+        -:  110:
+        -:  111:// lround
+        -:  112:
+        -:  113:inline _LIBCPP_HIDE_FROM_ABI long lround(float __x) _NOEXCEPT { return __builtin_lroundf(__x); }
+        -:  114:
+        -:  115:template <class = int>
+        -:  116:_LIBCPP_HIDE_FROM_ABI long lround(double __x) _NOEXCEPT {
+        -:  117:  return __builtin_lround(__x);
+        -:  118:}
+        -:  119:
+        -:  120:inline _LIBCPP_HIDE_FROM_ABI long lround(long double __x) _NOEXCEPT { return __builtin_lroundl(__x); }
+        -:  121:
+        -:  122:template <class _A1, __enable_if_t<is_integral<_A1>::value, int> = 0>
+        -:  123:inline _LIBCPP_HIDE_FROM_ABI long lround(_A1 __x) _NOEXCEPT {
+        -:  124:  return __builtin_lround((double)__x);
+        -:  125:}
+        -:  126:
+        -:  127:// nearbyint
+        -:  128:
+        -:  129:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI float nearbyint(float __x) _NOEXCEPT {
+        -:  130:  return __builtin_nearbyintf(__x);
+        -:  131:}
+        -:  132:
+        -:  133:template <class = int>
+        -:  134:[[__nodiscard__]] _LIBCPP_HIDE_FROM_ABI double nearbyint(double __x) _NOEXCEPT {
+        -:  135:  return __builtin_nearbyint(__x);
+        -:  136:}
+        -:  137:
+        -:  138:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI long double nearbyint(long double __x) _NOEXCEPT {
+        -:  139:  return __builtin_nearbyintl(__x);
+        -:  140:}
+        -:  141:
+        -:  142:template <class _A1, __enable_if_t<is_integral<_A1>::value, int> = 0>
+        -:  143:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI double nearbyint(_A1 __x) _NOEXCEPT {
+        -:  144:  return __builtin_nearbyint((double)__x);
+        -:  145:}
+        -:  146:
+        -:  147:// nextafter
+        -:  148:
+        -:  149:inline _LIBCPP_HIDE_FROM_ABI float nextafter(float __x, float __y) _NOEXCEPT { return __builtin_nextafterf(__x, __y); }
+        -:  150:
+        -:  151:template <class = int>
+        -:  152:_LIBCPP_HIDE_FROM_ABI double nextafter(double __x, double __y) _NOEXCEPT {
+        -:  153:  return __builtin_nextafter(__x, __y);
+        -:  154:}
+        -:  155:
+        -:  156:inline _LIBCPP_HIDE_FROM_ABI long double nextafter(long double __x, long double __y) _NOEXCEPT {
+        -:  157:  return __builtin_nextafterl(__x, __y);
+        -:  158:}
+        -:  159:
+        -:  160:template <class _A1, class _A2, __enable_if_t<is_arithmetic<_A1>::value && is_arithmetic<_A2>::value, int> = 0>
+        -:  161:inline _LIBCPP_HIDE_FROM_ABI __promote_t<_A1, _A2> nextafter(_A1 __x, _A2 __y) _NOEXCEPT {
+        -:  162:  using __result_type = __promote_t<_A1, _A2>;
+        -:  163:  static_assert(!(_IsSame<_A1, __result_type>::value && _IsSame<_A2, __result_type>::value), "");
+        -:  164:  return __math::nextafter((__result_type)__x, (__result_type)__y);
+        -:  165:}
+        -:  166:
+        -:  167:// nexttoward
+        -:  168:
+        -:  169:inline _LIBCPP_HIDE_FROM_ABI float nexttoward(float __x, long double __y) _NOEXCEPT {
+        -:  170:  return __builtin_nexttowardf(__x, __y);
+        -:  171:}
+        -:  172:
+        -:  173:template <class = int>
+        -:  174:_LIBCPP_HIDE_FROM_ABI double nexttoward(double __x, long double __y) _NOEXCEPT {
+        -:  175:  return __builtin_nexttoward(__x, __y);
+        -:  176:}
+        -:  177:
+        -:  178:inline _LIBCPP_HIDE_FROM_ABI long double nexttoward(long double __x, long double __y) _NOEXCEPT {
+        -:  179:  return __builtin_nexttowardl(__x, __y);
+        -:  180:}
+        -:  181:
+        -:  182:template <class _A1, __enable_if_t<is_integral<_A1>::value, int> = 0>
+        -:  183:inline _LIBCPP_HIDE_FROM_ABI double nexttoward(_A1 __x, long double __y) _NOEXCEPT {
+        -:  184:  return __builtin_nexttoward((double)__x, __y);
+        -:  185:}
+        -:  186:
+        -:  187:// rint
+        -:  188:
+        -:  189:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI float rint(float __x) _NOEXCEPT { return __builtin_rintf(__x); }
+        -:  190:
+        -:  191:template <class = int>
+        -:  192:[[__nodiscard__]] _LIBCPP_HIDE_FROM_ABI double rint(double __x) _NOEXCEPT {
+        -:  193:  return __builtin_rint(__x);
+        -:  194:}
+        -:  195:
+        -:  196:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI long double rint(long double __x) _NOEXCEPT {
+        -:  197:  return __builtin_rintl(__x);
+        -:  198:}
+        -:  199:
+        -:  200:template <class _A1, __enable_if_t<is_integral<_A1>::value, int> = 0>
+        -:  201:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI double rint(_A1 __x) _NOEXCEPT {
+        -:  202:  return __builtin_rint((double)__x);
+        -:  203:}
+        -:  204:
+        -:  205:// round
+        -:  206:
+        -:  207:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI float round(float __x) _NOEXCEPT { return __builtin_round(__x); }
+        -:  208:
+        -:  209:template <class = int>
+        -:  210:[[__nodiscard__]] _LIBCPP_HIDE_FROM_ABI double round(double __x) _NOEXCEPT {
+        -:  211:  return __builtin_round(__x);
+        -:  212:}
+        -:  213:
+        -:  214:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI long double round(long double __x) _NOEXCEPT {
+        -:  215:  return __builtin_roundl(__x);
+        -:  216:}
+        -:  217:
+        -:  218:template <class _A1, __enable_if_t<is_integral<_A1>::value, int> = 0>
+        -:  219:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI double round(_A1 __x) _NOEXCEPT {
+        -:  220:  return __builtin_round((double)__x);
+        -:  221:}
+        -:  222:
+        -:  223:// trunc
+        -:  224:
+        -:  225:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI float trunc(float __x) _NOEXCEPT { return __builtin_trunc(__x); }
+        -:  226:
+        -:  227:template <class = int>
+        -:  228:[[__nodiscard__]] _LIBCPP_HIDE_FROM_ABI double trunc(double __x) _NOEXCEPT {
+        -:  229:  return __builtin_trunc(__x);
+        -:  230:}
+        -:  231:
+        -:  232:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI long double trunc(long double __x) _NOEXCEPT {
+        -:  233:  return __builtin_truncl(__x);
+        -:  234:}
+        -:  235:
+        -:  236:template <class _A1, __enable_if_t<is_integral<_A1>::value, int> = 0>
+        -:  237:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI double trunc(_A1 __x) _NOEXCEPT {
+        -:  238:  return __builtin_trunc((double)__x);
+        -:  239:}
+        -:  240:
+        -:  241:} // namespace __math
+        -:  242:
+        -:  243:_LIBCPP_END_NAMESPACE_STD
+        -:  244:
+        -:  245:#endif // _LIBCPP___MATH_ROUNDING_FUNCTIONS_H

@@ -1,0 +1,819 @@
+        -:    0:Source:/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/unique_ptr.h
+        -:    0:Graph:build-cov/CMakeFiles/ptxra_core.dir/src/lexer/Lexer.cpp.gcno
+        -:    0:Data:build-cov/CMakeFiles/ptxra_core.dir/src/lexer/Lexer.cpp.gcda
+        -:    0:Runs:1
+        -:    1:// -*- C++ -*-
+        -:    2://===----------------------------------------------------------------------===//
+        -:    3://
+        -:    4:// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+        -:    5:// See https://llvm.org/LICENSE.txt for license information.
+        -:    6:// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+        -:    7://
+        -:    8://===----------------------------------------------------------------------===//
+        -:    9:
+        -:   10:#ifndef _LIBCPP___MEMORY_UNIQUE_PTR_H
+        -:   11:#define _LIBCPP___MEMORY_UNIQUE_PTR_H
+        -:   12:
+        -:   13:#include <__assert>
+        -:   14:#include <__compare/compare_three_way.h>
+        -:   15:#include <__compare/compare_three_way_result.h>
+        -:   16:#include <__compare/three_way_comparable.h>
+        -:   17:#include <__config>
+        -:   18:#include <__cstddef/nullptr_t.h>
+        -:   19:#include <__cstddef/size_t.h>
+        -:   20:#include <__functional/hash.h>
+        -:   21:#include <__functional/operations.h>
+        -:   22:#include <__memory/allocator_traits.h> // __pointer
+        -:   23:#include <__memory/array_cookie.h>
+        -:   24:#include <__memory/auto_ptr.h>
+        -:   25:#include <__memory/compressed_pair.h>
+        -:   26:#include <__memory/pointer_traits.h>
+        -:   27:#include <__type_traits/add_reference.h>
+        -:   28:#include <__type_traits/common_type.h>
+        -:   29:#include <__type_traits/conditional.h>
+        -:   30:#include <__type_traits/dependent_type.h>
+        -:   31:#include <__type_traits/enable_if.h>
+        -:   32:#include <__type_traits/integral_constant.h>
+        -:   33:#include <__type_traits/is_array.h>
+        -:   34:#include <__type_traits/is_assignable.h>
+        -:   35:#include <__type_traits/is_bounded_array.h>
+        -:   36:#include <__type_traits/is_constant_evaluated.h>
+        -:   37:#include <__type_traits/is_constructible.h>
+        -:   38:#include <__type_traits/is_convertible.h>
+        -:   39:#include <__type_traits/is_function.h>
+        -:   40:#include <__type_traits/is_pointer.h>
+        -:   41:#include <__type_traits/is_reference.h>
+        -:   42:#include <__type_traits/is_replaceable.h>
+        -:   43:#include <__type_traits/is_same.h>
+        -:   44:#include <__type_traits/is_swappable.h>
+        -:   45:#include <__type_traits/is_trivially_relocatable.h>
+        -:   46:#include <__type_traits/is_unbounded_array.h>
+        -:   47:#include <__type_traits/is_void.h>
+        -:   48:#include <__type_traits/remove_extent.h>
+        -:   49:#include <__type_traits/type_identity.h>
+        -:   50:#include <__utility/declval.h>
+        -:   51:#include <__utility/forward.h>
+        -:   52:#include <__utility/move.h>
+        -:   53:#include <__utility/private_constructor_tag.h>
+        -:   54:#include <cstdint>
+        -:   55:
+        -:   56:#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+        -:   57:#  pragma GCC system_header
+        -:   58:#endif
+        -:   59:
+        -:   60:_LIBCPP_PUSH_MACROS
+        -:   61:#include <__undef_macros>
+        -:   62:
+        -:   63:_LIBCPP_BEGIN_NAMESPACE_STD
+        -:   64:
+        -:   65:template <class _Tp>
+        -:   66:struct default_delete {
+        -:   67:  static_assert(!is_function<_Tp>::value, "default_delete cannot be instantiated for function types");
+        -:   68:
+        -:   69:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR default_delete() _NOEXCEPT = default;
+        -:   70:
+        -:   71:  template <class _Up, __enable_if_t<is_convertible<_Up*, _Tp*>::value, int> = 0>
+        -:   72:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 default_delete(const default_delete<_Up>&) _NOEXCEPT {}
+        -:   73:
+        -:   74:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 void operator()(_Tp* __ptr) const _NOEXCEPT {
+        -:   75:    static_assert(sizeof(_Tp) >= 0, "cannot delete an incomplete type");
+        -:   76:    static_assert(!is_void<_Tp>::value, "cannot delete an incomplete type");
+        -:   77:    delete __ptr;
+        -:   78:  }
+        -:   79:};
+        -:   80:
+        -:   81:template <class _Tp>
+        -:   82:struct default_delete<_Tp[]> {
+        -:   83:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR default_delete() _NOEXCEPT = default;
+        -:   84:
+        -:   85:  template <class _Up, __enable_if_t<is_convertible<_Up (*)[], _Tp (*)[]>::value, int> = 0>
+        -:   86:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 default_delete(const default_delete<_Up[]>&) _NOEXCEPT {}
+        -:   87:
+        -:   88:  template <class _Up, __enable_if_t<is_convertible<_Up (*)[], _Tp (*)[]>::value, int> = 0>
+        -:   89:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 void operator()(_Up* __ptr) const _NOEXCEPT {
+        -:   90:    static_assert(sizeof(_Up) >= 0, "cannot delete an incomplete type");
+        -:   91:    delete[] __ptr;
+        -:   92:  }
+        -:   93:};
+        -:   94:
+        -:   95:template <class _Deleter>
+        -:   96:inline const bool __is_default_deleter_v = false;
+        -:   97:
+        -:   98:template <class _Tp>
+        -:   99:inline const bool __is_default_deleter_v<default_delete<_Tp> > = true;
+        -:  100:
+        -:  101:template <class _Deleter>
+        -:  102:struct __unique_ptr_deleter_sfinae {
+        -:  103:  static_assert(!is_reference<_Deleter>::value, "incorrect specialization");
+        -:  104:  typedef const _Deleter& __lval_ref_type;
+        -:  105:  typedef _Deleter&& __good_rval_ref_type;
+        -:  106:  typedef true_type __enable_rval_overload;
+        -:  107:};
+        -:  108:
+        -:  109:template <class _Deleter>
+        -:  110:struct __unique_ptr_deleter_sfinae<_Deleter const&> {
+        -:  111:  typedef const _Deleter& __lval_ref_type;
+        -:  112:  typedef const _Deleter&& __bad_rval_ref_type;
+        -:  113:  typedef false_type __enable_rval_overload;
+        -:  114:};
+        -:  115:
+        -:  116:template <class _Deleter>
+        -:  117:struct __unique_ptr_deleter_sfinae<_Deleter&> {
+        -:  118:  typedef _Deleter& __lval_ref_type;
+        -:  119:  typedef _Deleter&& __bad_rval_ref_type;
+        -:  120:  typedef false_type __enable_rval_overload;
+        -:  121:};
+        -:  122:
+        -:  123:#if defined(_LIBCPP_ABI_ENABLE_UNIQUE_PTR_TRIVIAL_ABI)
+        -:  124:#  define _LIBCPP_UNIQUE_PTR_TRIVIAL_ABI __attribute__((__trivial_abi__))
+        -:  125:#else
+        -:  126:#  define _LIBCPP_UNIQUE_PTR_TRIVIAL_ABI
+        -:  127:#endif
+        -:  128:
+        -:  129:template <class _Tp, class _Dp = default_delete<_Tp> >
+        -:  130:class _LIBCPP_UNIQUE_PTR_TRIVIAL_ABI unique_ptr {
+        -:  131:public:
+        -:  132:  typedef _Tp element_type;
+        -:  133:  typedef _Dp deleter_type;
+        -:  134:  using pointer _LIBCPP_NODEBUG = __pointer<_Tp, deleter_type>;
+        -:  135:
+        -:  136:  static_assert(!is_rvalue_reference<deleter_type>::value, "the specified deleter type cannot be an rvalue reference");
+        -:  137:
+        -:  138:  // A unique_ptr contains the following members which may be trivially relocatable:
+        -:  139:  // - pointer : this may be trivially relocatable, so it's checked
+        -:  140:  // - deleter_type: this may be trivially relocatable, so it's checked
+        -:  141:  //
+        -:  142:  // This unique_ptr implementation only contains a pointer to the unique object and a deleter, so there are no
+        -:  143:  // references to itself. This means that the entire structure is trivially relocatable if its members are.
+        -:  144:  using __trivially_relocatable _LIBCPP_NODEBUG = __conditional_t<
+        -:  145:      __libcpp_is_trivially_relocatable<pointer>::value && __libcpp_is_trivially_relocatable<deleter_type>::value,
+        -:  146:      unique_ptr,
+        -:  147:      void>;
+        -:  148:  using __replaceable _LIBCPP_NODEBUG =
+        -:  149:      __conditional_t<__is_replaceable_v<pointer> && __is_replaceable_v<deleter_type>, unique_ptr, void>;
+        -:  150:
+        -:  151:private:
+        -:  152:  _LIBCPP_COMPRESSED_PAIR(pointer, __ptr_, deleter_type, __deleter_);
+        -:  153:
+        -:  154:  using _DeleterSFINAE _LIBCPP_NODEBUG = __unique_ptr_deleter_sfinae<_Dp>;
+        -:  155:
+        -:  156:  template <bool _Dummy>
+        -:  157:  using _LValRefType _LIBCPP_NODEBUG = typename __dependent_type<_DeleterSFINAE, _Dummy>::__lval_ref_type;
+        -:  158:
+        -:  159:  template <bool _Dummy>
+        -:  160:  using _GoodRValRefType _LIBCPP_NODEBUG = typename __dependent_type<_DeleterSFINAE, _Dummy>::__good_rval_ref_type;
+        -:  161:
+        -:  162:  template <bool _Dummy>
+        -:  163:  using _BadRValRefType _LIBCPP_NODEBUG = typename __dependent_type<_DeleterSFINAE, _Dummy>::__bad_rval_ref_type;
+        -:  164:
+        -:  165:  template <bool _Dummy, class _Deleter = typename __dependent_type< __type_identity<deleter_type>, _Dummy>::type>
+        -:  166:  using _EnableIfDeleterDefaultConstructible _LIBCPP_NODEBUG =
+        -:  167:      __enable_if_t<is_default_constructible<_Deleter>::value && !is_pointer<_Deleter>::value>;
+        -:  168:
+        -:  169:  template <class _ArgType>
+        -:  170:  using _EnableIfDeleterConstructible _LIBCPP_NODEBUG = __enable_if_t<is_constructible<deleter_type, _ArgType>::value>;
+        -:  171:
+        -:  172:  template <class _UPtr, class _Up>
+        -:  173:  using _EnableIfMoveConvertible _LIBCPP_NODEBUG =
+        -:  174:      __enable_if_t< is_convertible<typename _UPtr::pointer, pointer>::value && !is_array<_Up>::value >;
+        -:  175:
+        -:  176:  template <class _UDel>
+        -:  177:  using _EnableIfDeleterConvertible _LIBCPP_NODEBUG =
+        -:  178:      __enable_if_t< (is_reference<_Dp>::value && is_same<_Dp, _UDel>::value) ||
+        -:  179:                     (!is_reference<_Dp>::value && is_convertible<_UDel, _Dp>::value) >;
+        -:  180:
+        -:  181:  template <class _UDel>
+        -:  182:  using _EnableIfDeleterAssignable _LIBCPP_NODEBUG = __enable_if_t< is_assignable<_Dp&, _UDel&&>::value >;
+        -:  183:
+        -:  184:public:
+        -:  185:  template <bool _Dummy = true, class = _EnableIfDeleterDefaultConstructible<_Dummy> >
+        -:  186:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR unique_ptr() _NOEXCEPT : __ptr_(), __deleter_() {}
+        -:  187:
+        -:  188:  template <bool _Dummy = true, class = _EnableIfDeleterDefaultConstructible<_Dummy> >
+        -:  189:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR unique_ptr(nullptr_t) _NOEXCEPT : __ptr_(), __deleter_() {}
+        -:  190:
+        -:  191:  template <bool _Dummy = true, class = _EnableIfDeleterDefaultConstructible<_Dummy> >
+        -:  192:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 explicit unique_ptr(pointer __p) _NOEXCEPT
+        -:  193:      : __ptr_(__p),
+        -:  194:        __deleter_() {}
+        -:  195:
+        -:  196:  template <bool _Dummy = true, class = _EnableIfDeleterConstructible<_LValRefType<_Dummy> > >
+        -:  197:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 unique_ptr(pointer __p, _LValRefType<_Dummy> __d) _NOEXCEPT
+        -:  198:      : __ptr_(__p),
+        -:  199:        __deleter_(__d) {}
+        -:  200:
+        -:  201:  template <bool _Dummy = true, class = _EnableIfDeleterConstructible<_GoodRValRefType<_Dummy> > >
+     2556:  202:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 unique_ptr(pointer __p, _GoodRValRefType<_Dummy> __d) _NOEXCEPT
+      639:  203:      : __ptr_(__p),
+     1278:  204:        __deleter_(std::move(__d)) {
+        -:  205:    static_assert(!is_reference<deleter_type>::value, "rvalue deleter bound to reference");
+     1278:  206:  }
+        -:  207:
+        -:  208:  template <bool _Dummy = true, class = _EnableIfDeleterConstructible<_BadRValRefType<_Dummy> > >
+        -:  209:  _LIBCPP_HIDE_FROM_ABI unique_ptr(pointer __p, _BadRValRefType<_Dummy> __d) = delete;
+        -:  210:
+        -:  211:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 unique_ptr(unique_ptr&& __u) _NOEXCEPT
+        -:  212:      : __ptr_(__u.release()),
+        -:  213:        __deleter_(std::forward<deleter_type>(__u.get_deleter())) {}
+        -:  214:
+        -:  215:  template <class _Up,
+        -:  216:            class _Ep,
+        -:  217:            class = _EnableIfMoveConvertible<unique_ptr<_Up, _Ep>, _Up>,
+        -:  218:            class = _EnableIfDeleterConvertible<_Ep> >
+        -:  219:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 unique_ptr(unique_ptr<_Up, _Ep>&& __u) _NOEXCEPT
+        -:  220:      : __ptr_(__u.release()),
+        -:  221:        __deleter_(std::forward<_Ep>(__u.get_deleter())) {}
+        -:  222:
+        -:  223:#if _LIBCPP_STD_VER <= 14 || defined(_LIBCPP_ENABLE_CXX17_REMOVED_AUTO_PTR)
+        -:  224:  template <class _Up,
+        -:  225:            __enable_if_t<is_convertible<_Up*, _Tp*>::value && is_same<_Dp, default_delete<_Tp> >::value, int> = 0>
+        -:  226:  _LIBCPP_HIDE_FROM_ABI unique_ptr(auto_ptr<_Up>&& __p) _NOEXCEPT : __ptr_(__p.release()), __deleter_() {}
+        -:  227:#endif
+        -:  228:
+        -:  229:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 unique_ptr& operator=(unique_ptr&& __u) _NOEXCEPT {
+        -:  230:    reset(__u.release());
+        -:  231:    __deleter_ = std::forward<deleter_type>(__u.get_deleter());
+        -:  232:    return *this;
+        -:  233:  }
+        -:  234:
+        -:  235:  template <class _Up,
+        -:  236:            class _Ep,
+        -:  237:            class = _EnableIfMoveConvertible<unique_ptr<_Up, _Ep>, _Up>,
+        -:  238:            class = _EnableIfDeleterAssignable<_Ep> >
+        -:  239:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 unique_ptr& operator=(unique_ptr<_Up, _Ep>&& __u) _NOEXCEPT {
+        -:  240:    reset(__u.release());
+        -:  241:    __deleter_ = std::forward<_Ep>(__u.get_deleter());
+        -:  242:    return *this;
+        -:  243:  }
+        -:  244:
+        -:  245:#if _LIBCPP_STD_VER <= 14 || defined(_LIBCPP_ENABLE_CXX17_REMOVED_AUTO_PTR)
+        -:  246:  template <class _Up,
+        -:  247:            __enable_if_t<is_convertible<_Up*, _Tp*>::value && is_same<_Dp, default_delete<_Tp> >::value, int> = 0>
+        -:  248:  _LIBCPP_HIDE_FROM_ABI unique_ptr& operator=(auto_ptr<_Up> __p) {
+        -:  249:    reset(__p.release());
+        -:  250:    return *this;
+        -:  251:  }
+        -:  252:#endif
+        -:  253:
+        -:  254:#ifdef _LIBCPP_CXX03_LANG
+        -:  255:  unique_ptr(unique_ptr const&)            = delete;
+        -:  256:  unique_ptr& operator=(unique_ptr const&) = delete;
+        -:  257:#endif
+        -:  258:
+     1278:  259:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 ~unique_ptr() { reset(); }
+        -:  260:
+        -:  261:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 unique_ptr& operator=(nullptr_t) _NOEXCEPT {
+        -:  262:    reset();
+        -:  263:    return *this;
+        -:  264:  }
+        -:  265:
+      639:  266:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 __add_lvalue_reference_t<_Tp> operator*() const
+        -:  267:      _NOEXCEPT_(_NOEXCEPT_(*std::declval<pointer>())) {
+      639:  268:    return *__ptr_;
+        -:  269:  }
+     1989:  270:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 pointer operator->() const _NOEXCEPT { return __ptr_; }
+      990:  271:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 pointer get() const _NOEXCEPT { return __ptr_; }
+      639:  272:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 deleter_type& get_deleter() _NOEXCEPT { return __deleter_; }
+        -:  273:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 const deleter_type& get_deleter() const _NOEXCEPT {
+        -:  274:    return __deleter_;
+        -:  275:  }
+        -:  276:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 explicit operator bool() const _NOEXCEPT {
+        -:  277:    return __ptr_ != nullptr;
+        -:  278:  }
+        -:  279:
+      639:  280:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 pointer release() _NOEXCEPT {
+      639:  281:    pointer __t = __ptr_;
+      639:  282:    __ptr_      = pointer();
+      639:  283:    return __t;
+        -:  284:  }
+        -:  285:
+      639:  286:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 void reset(pointer __p = pointer()) _NOEXCEPT {
+      639:  287:    pointer __tmp = __ptr_;
+      639:  288:    __ptr_        = __p;
+      639:  289:    if (__tmp)
+    #####:  290:      __deleter_(__tmp);
+      639:  291:  }
+        -:  292:
+        -:  293:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 void swap(unique_ptr& __u) _NOEXCEPT {
+        -:  294:    using std::swap;
+        -:  295:    swap(__ptr_, __u.__ptr_);
+        -:  296:    swap(__deleter_, __u.__deleter_);
+        -:  297:  }
+        -:  298:};
+        -:  299:
+        -:  300:// Bounds checking in unique_ptr<T[]>
+        -:  301:// ==================================
+        -:  302://
+        -:  303:// We provide some helper classes that allow bounds checking when accessing a unique_ptr<T[]>.
+        -:  304:// There are a few cases where bounds checking can be implemented:
+        -:  305://
+        -:  306:// 1. When an array cookie exists at the beginning of the array allocation, we are
+        -:  307://    able to reuse that cookie to extract the size of the array and perform bounds checking.
+        -:  308://    An array cookie is a size inserted at the beginning of the allocation by the compiler.
+        -:  309://    That size is inserted implicitly when doing `new T[n]` in some cases (as of writing this
+        -:  310://    exactly when the array elements are not trivially destructible), and its main purpose is
+        -:  311://    to allow the runtime to destroy the `n` array elements when doing `delete[] array`.
+        -:  312://    When we are able to use array cookies, we reuse information already available in the
+        -:  313://    current runtime, so bounds checking does not require changing libc++'s ABI.
+        -:  314://
+        -:  315://    However, note that we cannot assume the presence of an array cookie when a custom deleter
+        -:  316://    is used, because the unique_ptr could have been created from an allocation that wasn't
+        -:  317://    obtained via `new T[n]` (since it may not be deleted with `delete[] arr`).
+        -:  318://
+        -:  319:// 2. When the "bounded unique_ptr" ABI configuration (controlled by `_LIBCPP_ABI_BOUNDED_UNIQUE_PTR`)
+        -:  320://    is enabled, we store the size of the allocation (when it is known) so we can check it when
+        -:  321://    indexing into the `unique_ptr`. That changes the layout of `std::unique_ptr<T[]>`, which is
+        -:  322://    an ABI break from the default configuration.
+        -:  323://
+        -:  324://    Note that even under this ABI configuration, we can't always know the size of the unique_ptr.
+        -:  325://    Indeed, the size of the allocation can only be known when the unique_ptr is created via
+        -:  326://    make_unique or a similar API. For example, it can't be known when constructed from an arbitrary
+        -:  327://    pointer, in which case we are not able to check the bounds on access:
+        -:  328://
+        -:  329://      unique_ptr<T[], MyDeleter> ptr(new T[3]);
+        -:  330://
+        -:  331://    When we don't know the size of the allocation via the API used to create the unique_ptr, we
+        -:  332://    try to fall back to using an array cookie when available.
+        -:  333://
+        -:  334://    Finally, note that when this ABI configuration is enabled, we have no choice but to always
+        -:  335://    make space for the size to be stored in the unique_ptr. Indeed, while we might want to avoid
+        -:  336://    storing the size when an array cookie is available, knowing whether an array cookie is available
+        -:  337://    requires the type stored in the unique_ptr to be complete, while unique_ptr can normally
+        -:  338://    accommodate incomplete types.
+        -:  339://
+        -:  340:// (1) Implementation where we rely on the array cookie to know the size of the allocation, if
+        -:  341://     an array cookie exists.
+        -:  342:struct __unique_ptr_array_bounds_stateless {
+        -:  343:  __unique_ptr_array_bounds_stateless() = default;
+        -:  344:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR explicit __unique_ptr_array_bounds_stateless(size_t) {}
+        -:  345:
+        -:  346:  template <class _Deleter,
+        -:  347:            class _Tp,
+        -:  348:            __enable_if_t<__is_default_deleter_v<_Deleter> && __has_array_cookie<_Tp>::value, int> = 0>
+        -:  349:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR bool __in_bounds(_Tp* __ptr, size_t __index) const {
+        -:  350:    // In constant expressions, we can't check the array cookie so we just pretend that the index
+        -:  351:    // is in-bounds. The compiler catches invalid accesses anyway.
+        -:  352:    if (__libcpp_is_constant_evaluated())
+        -:  353:      return true;
+        -:  354:    size_t __cookie = std::__get_array_cookie(__ptr);
+        -:  355:    return __index < __cookie;
+        -:  356:  }
+        -:  357:
+        -:  358:  template <class _Deleter,
+        -:  359:            class _Tp,
+        -:  360:            __enable_if_t<!__is_default_deleter_v<_Deleter> || !__has_array_cookie<_Tp>::value, int> = 0>
+        -:  361:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR bool __in_bounds(_Tp*, size_t) const {
+        -:  362:    return true; // If we don't have an array cookie, we assume the access is in-bounds
+        -:  363:  }
+        -:  364:};
+        -:  365:
+        -:  366:// (2) Implementation where we store the size in the class whenever we have it.
+        -:  367://
+        -:  368:// Semantically, we'd need to store the size as an optional<size_t>. However, since that
+        -:  369:// is really heavy weight, we instead store a size_t and use SIZE_MAX as a magic value
+        -:  370:// meaning that we don't know the size.
+        -:  371:struct __unique_ptr_array_bounds_stored {
+        -:  372:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR __unique_ptr_array_bounds_stored() : __size_(SIZE_MAX) {}
+        -:  373:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR explicit __unique_ptr_array_bounds_stored(size_t __size) : __size_(__size) {}
+        -:  374:
+        -:  375:  // Use the array cookie if there's one
+        -:  376:  template <class _Deleter,
+        -:  377:            class _Tp,
+        -:  378:            __enable_if_t<__is_default_deleter_v<_Deleter> && __has_array_cookie<_Tp>::value, int> = 0>
+        -:  379:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR bool __in_bounds(_Tp* __ptr, size_t __index) const {
+        -:  380:    if (__libcpp_is_constant_evaluated())
+        -:  381:      return true;
+        -:  382:    size_t __cookie = std::__get_array_cookie(__ptr);
+        -:  383:    return __index < __cookie;
+        -:  384:  }
+        -:  385:
+        -:  386:  // Otherwise, fall back on the stored size (if any)
+        -:  387:  template <class _Deleter,
+        -:  388:            class _Tp,
+        -:  389:            __enable_if_t<!__is_default_deleter_v<_Deleter> || !__has_array_cookie<_Tp>::value, int> = 0>
+        -:  390:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR bool __in_bounds(_Tp*, size_t __index) const {
+        -:  391:    return __index < __size_;
+        -:  392:  }
+        -:  393:
+        -:  394:private:
+        -:  395:  size_t __size_;
+        -:  396:};
+        -:  397:
+        -:  398:template <class _Tp, class _Dp>
+        -:  399:class _LIBCPP_UNIQUE_PTR_TRIVIAL_ABI unique_ptr<_Tp[], _Dp> {
+        -:  400:public:
+        -:  401:  typedef _Tp element_type;
+        -:  402:  typedef _Dp deleter_type;
+        -:  403:  using pointer = __pointer<_Tp, deleter_type>;
+        -:  404:
+        -:  405:  // A unique_ptr contains the following members which may be trivially relocatable:
+        -:  406:  // - pointer: this may be trivially relocatable, so it's checked
+        -:  407:  // - deleter_type: this may be trivially relocatable, so it's checked
+        -:  408:  // - (optionally) size: this is trivially relocatable
+        -:  409:  //
+        -:  410:  // This unique_ptr implementation only contains a pointer to the unique object and a deleter, so there are no
+        -:  411:  // references to itself. This means that the entire structure is trivially relocatable if its members are.
+        -:  412:  using __trivially_relocatable _LIBCPP_NODEBUG = __conditional_t<
+        -:  413:      __libcpp_is_trivially_relocatable<pointer>::value && __libcpp_is_trivially_relocatable<deleter_type>::value,
+        -:  414:      unique_ptr,
+        -:  415:      void>;
+        -:  416:  using __replaceable _LIBCPP_NODEBUG =
+        -:  417:      __conditional_t<__is_replaceable_v<pointer> && __is_replaceable_v<deleter_type>, unique_ptr, void>;
+        -:  418:
+        -:  419:private:
+        -:  420:  template <class _Up, class _OtherDeleter>
+        -:  421:  friend class unique_ptr;
+        -:  422:
+        -:  423:  _LIBCPP_COMPRESSED_PAIR(pointer, __ptr_, deleter_type, __deleter_);
+        -:  424:#ifdef _LIBCPP_ABI_BOUNDED_UNIQUE_PTR
+        -:  425:  using _BoundsChecker _LIBCPP_NODEBUG = __unique_ptr_array_bounds_stored;
+        -:  426:#else
+        -:  427:  using _BoundsChecker _LIBCPP_NODEBUG = __unique_ptr_array_bounds_stateless;
+        -:  428:#endif
+        -:  429:  _LIBCPP_NO_UNIQUE_ADDRESS _BoundsChecker __checker_;
+        -:  430:
+        -:  431:  template <class _From>
+        -:  432:  struct _CheckArrayPointerConversion : is_same<_From, pointer> {};
+        -:  433:
+        -:  434:  template <class _FromElem>
+        -:  435:  struct _CheckArrayPointerConversion<_FromElem*>
+        -:  436:      : integral_constant<bool,
+        -:  437:                          is_same<_FromElem*, pointer>::value ||
+        -:  438:                              (is_same<pointer, element_type*>::value &&
+        -:  439:                               is_convertible<_FromElem (*)[], element_type (*)[]>::value) > {};
+        -:  440:
+        -:  441:  typedef __unique_ptr_deleter_sfinae<_Dp> _DeleterSFINAE;
+        -:  442:
+        -:  443:  template <bool _Dummy>
+        -:  444:  using _LValRefType _LIBCPP_NODEBUG = typename __dependent_type<_DeleterSFINAE, _Dummy>::__lval_ref_type;
+        -:  445:
+        -:  446:  template <bool _Dummy>
+        -:  447:  using _GoodRValRefType _LIBCPP_NODEBUG = typename __dependent_type<_DeleterSFINAE, _Dummy>::__good_rval_ref_type;
+        -:  448:
+        -:  449:  template <bool _Dummy>
+        -:  450:  using _BadRValRefType _LIBCPP_NODEBUG = typename __dependent_type<_DeleterSFINAE, _Dummy>::__bad_rval_ref_type;
+        -:  451:
+        -:  452:  template <bool _Dummy, class _Deleter = typename __dependent_type< __type_identity<deleter_type>, _Dummy>::type>
+        -:  453:  using _EnableIfDeleterDefaultConstructible _LIBCPP_NODEBUG =
+        -:  454:      __enable_if_t<is_default_constructible<_Deleter>::value && !is_pointer<_Deleter>::value>;
+        -:  455:
+        -:  456:  template <class _ArgType>
+        -:  457:  using _EnableIfDeleterConstructible _LIBCPP_NODEBUG = __enable_if_t<is_constructible<deleter_type, _ArgType>::value>;
+        -:  458:
+        -:  459:  template <class _Pp>
+        -:  460:  using _EnableIfPointerConvertible _LIBCPP_NODEBUG = __enable_if_t< _CheckArrayPointerConversion<_Pp>::value >;
+        -:  461:
+        -:  462:  template <class _UPtr, class _Up, class _ElemT = typename _UPtr::element_type>
+        -:  463:  using _EnableIfMoveConvertible _LIBCPP_NODEBUG =
+        -:  464:      __enable_if_t< is_array<_Up>::value && is_same<pointer, element_type*>::value &&
+        -:  465:                     is_same<typename _UPtr::pointer, _ElemT*>::value &&
+        -:  466:                     is_convertible<_ElemT (*)[], element_type (*)[]>::value >;
+        -:  467:
+        -:  468:  template <class _UDel>
+        -:  469:  using _EnableIfDeleterConvertible _LIBCPP_NODEBUG =
+        -:  470:      __enable_if_t< (is_reference<_Dp>::value && is_same<_Dp, _UDel>::value) ||
+        -:  471:                     (!is_reference<_Dp>::value && is_convertible<_UDel, _Dp>::value) >;
+        -:  472:
+        -:  473:  template <class _UDel>
+        -:  474:  using _EnableIfDeleterAssignable _LIBCPP_NODEBUG = __enable_if_t< is_assignable<_Dp&, _UDel&&>::value >;
+        -:  475:
+        -:  476:public:
+        -:  477:  template <bool _Dummy = true, class = _EnableIfDeleterDefaultConstructible<_Dummy> >
+       18:  478:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR unique_ptr() _NOEXCEPT : __ptr_(), __deleter_() {}
+        -:  479:
+        -:  480:  template <bool _Dummy = true, class = _EnableIfDeleterDefaultConstructible<_Dummy> >
+        -:  481:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR unique_ptr(nullptr_t) _NOEXCEPT : __ptr_(), __deleter_() {}
+        -:  482:
+        -:  483:  template <class _Pp,
+        -:  484:            bool _Dummy = true,
+        -:  485:            class       = _EnableIfDeleterDefaultConstructible<_Dummy>,
+        -:  486:            class       = _EnableIfPointerConvertible<_Pp> >
+        -:  487:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 explicit unique_ptr(_Pp __ptr) _NOEXCEPT
+        -:  488:      : __ptr_(__ptr),
+        -:  489:        __deleter_() {}
+        -:  490:
+        -:  491:  // Private constructor used by make_unique & friends to pass the size that was allocated
+        -:  492:  template <class _Tag, class _Ptr, __enable_if_t<is_same<_Tag, __private_constructor_tag>::value, int> = 0>
+        -:  493:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 explicit unique_ptr(_Tag, _Ptr __ptr, size_t __size) _NOEXCEPT
+        -:  494:      : __ptr_(__ptr),
+        -:  495:        __checker_(__size) {}
+        -:  496:
+        -:  497:  template <class _Pp,
+        -:  498:            bool _Dummy = true,
+        -:  499:            class       = _EnableIfDeleterConstructible<_LValRefType<_Dummy> >,
+        -:  500:            class       = _EnableIfPointerConvertible<_Pp> >
+        -:  501:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 unique_ptr(_Pp __ptr, _LValRefType<_Dummy> __deleter) _NOEXCEPT
+        -:  502:      : __ptr_(__ptr),
+        -:  503:        __deleter_(__deleter) {}
+        -:  504:
+        -:  505:  template <bool _Dummy = true, class = _EnableIfDeleterConstructible<_LValRefType<_Dummy> > >
+        -:  506:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 unique_ptr(nullptr_t, _LValRefType<_Dummy> __deleter) _NOEXCEPT
+        -:  507:      : __ptr_(nullptr),
+        -:  508:        __deleter_(__deleter) {}
+        -:  509:
+        -:  510:  template <class _Pp,
+        -:  511:            bool _Dummy = true,
+        -:  512:            class       = _EnableIfDeleterConstructible<_GoodRValRefType<_Dummy> >,
+        -:  513:            class       = _EnableIfPointerConvertible<_Pp> >
+        -:  514:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23
+        -:  515:  unique_ptr(_Pp __ptr, _GoodRValRefType<_Dummy> __deleter) _NOEXCEPT
+        -:  516:      : __ptr_(__ptr),
+        -:  517:        __deleter_(std::move(__deleter)) {
+        -:  518:    static_assert(!is_reference<deleter_type>::value, "rvalue deleter bound to reference");
+        -:  519:  }
+        -:  520:
+        -:  521:  template <bool _Dummy = true, class = _EnableIfDeleterConstructible<_GoodRValRefType<_Dummy> > >
+        -:  522:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23
+        -:  523:  unique_ptr(nullptr_t, _GoodRValRefType<_Dummy> __deleter) _NOEXCEPT
+        -:  524:      : __ptr_(nullptr),
+        -:  525:        __deleter_(std::move(__deleter)) {
+        -:  526:    static_assert(!is_reference<deleter_type>::value, "rvalue deleter bound to reference");
+        -:  527:  }
+        -:  528:
+        -:  529:  template <class _Pp,
+        -:  530:            bool _Dummy = true,
+        -:  531:            class       = _EnableIfDeleterConstructible<_BadRValRefType<_Dummy> >,
+        -:  532:            class       = _EnableIfPointerConvertible<_Pp> >
+        -:  533:  _LIBCPP_HIDE_FROM_ABI unique_ptr(_Pp __ptr, _BadRValRefType<_Dummy> __deleter) = delete;
+        -:  534:
+        -:  535:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 unique_ptr(unique_ptr&& __u) _NOEXCEPT
+        -:  536:      : __ptr_(__u.release()),
+        -:  537:        __deleter_(std::forward<deleter_type>(__u.get_deleter())),
+        -:  538:        __checker_(std::move(__u.__checker_)) {}
+        -:  539:
+        -:  540:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 unique_ptr& operator=(unique_ptr&& __u) _NOEXCEPT {
+        -:  541:    reset(__u.release());
+        -:  542:    __deleter_ = std::forward<deleter_type>(__u.get_deleter());
+        -:  543:    __checker_ = std::move(__u.__checker_);
+        -:  544:    return *this;
+        -:  545:  }
+        -:  546:
+        -:  547:  template <class _Up,
+        -:  548:            class _Ep,
+        -:  549:            class = _EnableIfMoveConvertible<unique_ptr<_Up, _Ep>, _Up>,
+        -:  550:            class = _EnableIfDeleterConvertible<_Ep> >
+        -:  551:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 unique_ptr(unique_ptr<_Up, _Ep>&& __u) _NOEXCEPT
+        -:  552:      : __ptr_(__u.release()),
+        -:  553:        __deleter_(std::forward<_Ep>(__u.get_deleter())),
+        -:  554:        __checker_(std::move(__u.__checker_)) {}
+        -:  555:
+        -:  556:  template <class _Up,
+        -:  557:            class _Ep,
+        -:  558:            class = _EnableIfMoveConvertible<unique_ptr<_Up, _Ep>, _Up>,
+        -:  559:            class = _EnableIfDeleterAssignable<_Ep> >
+        -:  560:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 unique_ptr& operator=(unique_ptr<_Up, _Ep>&& __u) _NOEXCEPT {
+        -:  561:    reset(__u.release());
+        -:  562:    __deleter_ = std::forward<_Ep>(__u.get_deleter());
+        -:  563:    __checker_ = std::move(__u.__checker_);
+        -:  564:    return *this;
+        -:  565:  }
+        -:  566:
+        -:  567:#ifdef _LIBCPP_CXX03_LANG
+        -:  568:  unique_ptr(unique_ptr const&)            = delete;
+        -:  569:  unique_ptr& operator=(unique_ptr const&) = delete;
+        -:  570:#endif
+        -:  571:
+        -:  572:public:
+       18:  573:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 ~unique_ptr() { reset(); }
+        -:  574:
+        -:  575:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 unique_ptr& operator=(nullptr_t) _NOEXCEPT {
+        -:  576:    reset();
+        -:  577:    return *this;
+        -:  578:  }
+        -:  579:
+     6631:  580:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 __add_lvalue_reference_t<_Tp> operator[](size_t __i) const {
+        -:  581:    _LIBCPP_ASSERT_VALID_ELEMENT_ACCESS(__checker_.__in_bounds<deleter_type>(std::__to_address(__ptr_), __i),
+        -:  582:                                        "unique_ptr<T[]>::operator[](index): index out of range");
+     6631:  583:    return __ptr_[__i];
+        -:  584:  }
+        -:  585:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 pointer get() const _NOEXCEPT { return __ptr_; }
+        -:  586:
+      108:  587:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 deleter_type& get_deleter() _NOEXCEPT { return __deleter_; }
+        -:  588:
+     2077:  589:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 const deleter_type& get_deleter() const _NOEXCEPT {
+     2077:  590:    return __deleter_;
+        -:  591:  }
+        -:  592:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 explicit operator bool() const _NOEXCEPT {
+        -:  593:    return __ptr_ != nullptr;
+        -:  594:  }
+        -:  595:
+        -:  596:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 pointer release() _NOEXCEPT {
+        -:  597:    pointer __t = __ptr_;
+        -:  598:    __ptr_      = pointer();
+        -:  599:    // The deleter and the optional bounds-checker are left unchanged. The bounds-checker
+        -:  600:    // will be reinitialized appropriately when/if the unique_ptr gets assigned-to or reset.
+        -:  601:    return __t;
+        -:  602:  }
+        -:  603:
+        -:  604:  template <class _Pp, __enable_if_t<_CheckArrayPointerConversion<_Pp>::value, int> = 0>
+       54:  605:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 void reset(_Pp __ptr) _NOEXCEPT {
+       54:  606:    pointer __tmp = __ptr_;
+       54:  607:    __ptr_        = __ptr;
+        -:  608:    __checker_    = _BoundsChecker();
+       54:  609:    if (__tmp)
+       45:  610:      __deleter_(__tmp);
+       54:  611:  }
+        -:  612:
+        9:  613:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 void reset(nullptr_t = nullptr) _NOEXCEPT {
+        9:  614:    pointer __tmp = __ptr_;
+        9:  615:    __ptr_        = nullptr;
+        -:  616:    __checker_    = _BoundsChecker();
+        9:  617:    if (__tmp)
+        9:  618:      __deleter_(__tmp);
+        9:  619:  }
+        -:  620:
+        -:  621:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 void swap(unique_ptr& __u) _NOEXCEPT {
+        -:  622:    using std::swap;
+        -:  623:    swap(__ptr_, __u.__ptr_);
+        -:  624:    swap(__deleter_, __u.__deleter_);
+        -:  625:    swap(__checker_, __u.__checker_);
+        -:  626:  }
+        -:  627:};
+        -:  628:
+        -:  629:template <class _Tp, class _Dp, __enable_if_t<__is_swappable_v<_Dp>, int> = 0>
+        -:  630:inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 void
+        -:  631:swap(unique_ptr<_Tp, _Dp>& __x, unique_ptr<_Tp, _Dp>& __y) _NOEXCEPT {
+        -:  632:  __x.swap(__y);
+        -:  633:}
+        -:  634:
+        -:  635:template <class _T1, class _D1, class _T2, class _D2>
+        -:  636:inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 bool
+        -:  637:operator==(const unique_ptr<_T1, _D1>& __x, const unique_ptr<_T2, _D2>& __y) {
+        -:  638:  return __x.get() == __y.get();
+        -:  639:}
+        -:  640:
+        -:  641:#if _LIBCPP_STD_VER <= 17
+        -:  642:template <class _T1, class _D1, class _T2, class _D2>
+        -:  643:inline _LIBCPP_HIDE_FROM_ABI bool operator!=(const unique_ptr<_T1, _D1>& __x, const unique_ptr<_T2, _D2>& __y) {
+        -:  644:  return !(__x == __y);
+        -:  645:}
+        -:  646:#endif
+        -:  647:
+        -:  648:template <class _T1, class _D1, class _T2, class _D2>
+        -:  649:inline _LIBCPP_HIDE_FROM_ABI bool operator<(const unique_ptr<_T1, _D1>& __x, const unique_ptr<_T2, _D2>& __y) {
+        -:  650:  typedef typename unique_ptr<_T1, _D1>::pointer _P1;
+        -:  651:  typedef typename unique_ptr<_T2, _D2>::pointer _P2;
+        -:  652:  typedef typename common_type<_P1, _P2>::type _Vp;
+        -:  653:  return less<_Vp>()(__x.get(), __y.get());
+        -:  654:}
+        -:  655:
+        -:  656:template <class _T1, class _D1, class _T2, class _D2>
+        -:  657:inline _LIBCPP_HIDE_FROM_ABI bool operator>(const unique_ptr<_T1, _D1>& __x, const unique_ptr<_T2, _D2>& __y) {
+        -:  658:  return __y < __x;
+        -:  659:}
+        -:  660:
+        -:  661:template <class _T1, class _D1, class _T2, class _D2>
+        -:  662:inline _LIBCPP_HIDE_FROM_ABI bool operator<=(const unique_ptr<_T1, _D1>& __x, const unique_ptr<_T2, _D2>& __y) {
+        -:  663:  return !(__y < __x);
+        -:  664:}
+        -:  665:
+        -:  666:template <class _T1, class _D1, class _T2, class _D2>
+        -:  667:inline _LIBCPP_HIDE_FROM_ABI bool operator>=(const unique_ptr<_T1, _D1>& __x, const unique_ptr<_T2, _D2>& __y) {
+        -:  668:  return !(__x < __y);
+        -:  669:}
+        -:  670:
+        -:  671:#if _LIBCPP_STD_VER >= 20
+        -:  672:template <class _T1, class _D1, class _T2, class _D2>
+        -:  673:  requires three_way_comparable_with<typename unique_ptr<_T1, _D1>::pointer, typename unique_ptr<_T2, _D2>::pointer>
+        -:  674:_LIBCPP_HIDE_FROM_ABI
+        -:  675:compare_three_way_result_t<typename unique_ptr<_T1, _D1>::pointer, typename unique_ptr<_T2, _D2>::pointer>
+        -:  676:operator<=>(const unique_ptr<_T1, _D1>& __x, const unique_ptr<_T2, _D2>& __y) {
+        -:  677:  return compare_three_way()(__x.get(), __y.get());
+        -:  678:}
+        -:  679:#endif
+        -:  680:
+        -:  681:template <class _T1, class _D1>
+        -:  682:inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 bool
+        -:  683:operator==(const unique_ptr<_T1, _D1>& __x, nullptr_t) _NOEXCEPT {
+        -:  684:  return !__x;
+        -:  685:}
+        -:  686:
+        -:  687:#if _LIBCPP_STD_VER <= 17
+        -:  688:template <class _T1, class _D1>
+        -:  689:inline _LIBCPP_HIDE_FROM_ABI bool operator==(nullptr_t, const unique_ptr<_T1, _D1>& __x) _NOEXCEPT {
+        -:  690:  return !__x;
+        -:  691:}
+        -:  692:
+        -:  693:template <class _T1, class _D1>
+        -:  694:inline _LIBCPP_HIDE_FROM_ABI bool operator!=(const unique_ptr<_T1, _D1>& __x, nullptr_t) _NOEXCEPT {
+        -:  695:  return static_cast<bool>(__x);
+        -:  696:}
+        -:  697:
+        -:  698:template <class _T1, class _D1>
+        -:  699:inline _LIBCPP_HIDE_FROM_ABI bool operator!=(nullptr_t, const unique_ptr<_T1, _D1>& __x) _NOEXCEPT {
+        -:  700:  return static_cast<bool>(__x);
+        -:  701:}
+        -:  702:#endif // _LIBCPP_STD_VER <= 17
+        -:  703:
+        -:  704:template <class _T1, class _D1>
+        -:  705:inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 bool operator<(const unique_ptr<_T1, _D1>& __x, nullptr_t) {
+        -:  706:  typedef typename unique_ptr<_T1, _D1>::pointer _P1;
+        -:  707:  return less<_P1>()(__x.get(), nullptr);
+        -:  708:}
+        -:  709:
+        -:  710:template <class _T1, class _D1>
+        -:  711:inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 bool operator<(nullptr_t, const unique_ptr<_T1, _D1>& __x) {
+        -:  712:  typedef typename unique_ptr<_T1, _D1>::pointer _P1;
+        -:  713:  return less<_P1>()(nullptr, __x.get());
+        -:  714:}
+        -:  715:
+        -:  716:template <class _T1, class _D1>
+        -:  717:inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 bool operator>(const unique_ptr<_T1, _D1>& __x, nullptr_t) {
+        -:  718:  return nullptr < __x;
+        -:  719:}
+        -:  720:
+        -:  721:template <class _T1, class _D1>
+        -:  722:inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 bool operator>(nullptr_t, const unique_ptr<_T1, _D1>& __x) {
+        -:  723:  return __x < nullptr;
+        -:  724:}
+        -:  725:
+        -:  726:template <class _T1, class _D1>
+        -:  727:inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 bool operator<=(const unique_ptr<_T1, _D1>& __x, nullptr_t) {
+        -:  728:  return !(nullptr < __x);
+        -:  729:}
+        -:  730:
+        -:  731:template <class _T1, class _D1>
+        -:  732:inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 bool operator<=(nullptr_t, const unique_ptr<_T1, _D1>& __x) {
+        -:  733:  return !(__x < nullptr);
+        -:  734:}
+        -:  735:
+        -:  736:template <class _T1, class _D1>
+        -:  737:inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 bool operator>=(const unique_ptr<_T1, _D1>& __x, nullptr_t) {
+        -:  738:  return !(__x < nullptr);
+        -:  739:}
+        -:  740:
+        -:  741:template <class _T1, class _D1>
+        -:  742:inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 bool operator>=(nullptr_t, const unique_ptr<_T1, _D1>& __x) {
+        -:  743:  return !(nullptr < __x);
+        -:  744:}
+        -:  745:
+        -:  746:#if _LIBCPP_STD_VER >= 20
+        -:  747:template <class _T1, class _D1>
+        -:  748:  requires three_way_comparable< typename unique_ptr<_T1, _D1>::pointer>
+        -:  749:_LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 compare_three_way_result_t<typename unique_ptr<_T1, _D1>::pointer>
+        -:  750:operator<=>(const unique_ptr<_T1, _D1>& __x, nullptr_t) {
+        -:  751:  return compare_three_way()(__x.get(), static_cast<typename unique_ptr<_T1, _D1>::pointer>(nullptr));
+        -:  752:}
+        -:  753:#endif
+        -:  754:
+        -:  755:#if _LIBCPP_STD_VER >= 14
+        -:  756:
+        -:  757:template <class _Tp, class... _Args, enable_if_t<!is_array<_Tp>::value, int> = 0>
+        -:  758:inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 unique_ptr<_Tp> make_unique(_Args&&... __args) {
+        -:  759:  return unique_ptr<_Tp>(new _Tp(std::forward<_Args>(__args)...));
+        -:  760:}
+        -:  761:
+        -:  762:template <class _Tp, enable_if_t<__is_unbounded_array_v<_Tp>, int> = 0>
+        -:  763:inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 unique_ptr<_Tp> make_unique(size_t __n) {
+        -:  764:  typedef __remove_extent_t<_Tp> _Up;
+        -:  765:  return unique_ptr<_Tp>(__private_constructor_tag(), new _Up[__n](), __n);
+        -:  766:}
+        -:  767:
+        -:  768:template <class _Tp, class... _Args, enable_if_t<__is_bounded_array_v<_Tp>, int> = 0>
+        -:  769:void make_unique(_Args&&...) = delete;
+        -:  770:
+        -:  771:#endif // _LIBCPP_STD_VER >= 14
+        -:  772:
+        -:  773:#if _LIBCPP_STD_VER >= 20
+        -:  774:
+        -:  775:template <class _Tp, enable_if_t<!is_array_v<_Tp>, int> = 0>
+        -:  776:_LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 unique_ptr<_Tp> make_unique_for_overwrite() {
+        -:  777:  return unique_ptr<_Tp>(new _Tp);
+        -:  778:}
+        -:  779:
+        -:  780:template <class _Tp, enable_if_t<is_unbounded_array_v<_Tp>, int> = 0>
+        -:  781:_LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX23 unique_ptr<_Tp> make_unique_for_overwrite(size_t __n) {
+        -:  782:  return unique_ptr<_Tp>(__private_constructor_tag(), new __remove_extent_t<_Tp>[__n], __n);
+        -:  783:}
+        -:  784:
+        -:  785:template <class _Tp, class... _Args, enable_if_t<is_bounded_array_v<_Tp>, int> = 0>
+        -:  786:void make_unique_for_overwrite(_Args&&...) = delete;
+        -:  787:
+        -:  788:#endif // _LIBCPP_STD_VER >= 20
+        -:  789:
+        -:  790:template <class _Tp>
+        -:  791:struct hash;
+        -:  792:
+        -:  793:template <class _Tp, class _Dp>
+        -:  794:#ifdef _LIBCPP_CXX03_LANG
+        -:  795:struct hash<unique_ptr<_Tp, _Dp> >
+        -:  796:#else
+        -:  797:struct hash<__enable_hash_helper< unique_ptr<_Tp, _Dp>, typename unique_ptr<_Tp, _Dp>::pointer> >
+        -:  798:#endif
+        -:  799:{
+        -:  800:#if _LIBCPP_STD_VER <= 17 || defined(_LIBCPP_ENABLE_CXX20_REMOVED_BINDER_TYPEDEFS)
+        -:  801:  _LIBCPP_DEPRECATED_IN_CXX17 typedef unique_ptr<_Tp, _Dp> argument_type;
+        -:  802:  _LIBCPP_DEPRECATED_IN_CXX17 typedef size_t result_type;
+        -:  803:#endif
+        -:  804:
+        -:  805:  _LIBCPP_HIDE_FROM_ABI size_t operator()(const unique_ptr<_Tp, _Dp>& __ptr) const {
+        -:  806:    typedef typename unique_ptr<_Tp, _Dp>::pointer pointer;
+        -:  807:    return hash<pointer>()(__ptr.get());
+        -:  808:  }
+        -:  809:};
+        -:  810:
+        -:  811:_LIBCPP_END_NAMESPACE_STD
+        -:  812:
+        -:  813:_LIBCPP_POP_MACROS
+        -:  814:
+        -:  815:#endif // _LIBCPP___MEMORY_UNIQUE_PTR_H

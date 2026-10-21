@@ -1,0 +1,63 @@
+.version 7.5
+.target sm_80
+.address_size 64
+
+.visible .entry divergent(
+    .param .u64 in,
+    .param .u64 out,
+    .param .u32 N
+)
+{
+    .reg .pred %p<6>;
+    .reg .b32 %r<12>;
+    .reg .b64 %rd<8>;
+
+    ld.param.u32 %r0, [N];
+    mov.u32 %r1, %ctaid.x;
+    mov.u32 %r2, %ntid.x;
+    mov.u32 %r3, %tid.x;
+    mad.lo.s32 %r4, %r1, %r2, %r3;
+
+    setp.ge.s32 %p0, %r4, %r0;
+    @%p0 bra L_exit;
+
+    ld.param.u64 %rd0, [in];
+    ld.param.u64 %rd1, [out];
+
+    mul.wide.s32 %rd2, %r4, 4;
+    add.s64 %rd3, %rd0, %rd2;
+    ld.global.s32 %r5, [%rd3];
+
+    // val % 2
+    and.b32 %r6, %r5, 1;
+    setp.ne.s32 %p1, %r6, 0;
+    @%p1 bra L_odd;
+
+    // Even path
+    setp.le.s32 %p2, %r5, 100;
+    @%p2 bra L_even_small;
+    mul.lo.s32 %r7, %r5, 3;
+    add.s32 %r5, %r7, 1;
+    bra L_store;
+
+L_even_small:
+    shr.s32 %r5, %r5, 1;
+    bra L_store;
+
+L_odd:
+    setp.ge.s32 %p3, %r5, 50;
+    @%p3 bra L_odd_large;
+    mul.lo.s32 %r8, %r5, 7;
+    sub.s32 %r5, %r8, 3;
+    bra L_store;
+
+L_odd_large:
+    add.s32 %r5, %r5, 42;
+
+L_store:
+    add.s64 %rd4, %rd1, %rd2;
+    st.global.s32 [%rd4], %r5;
+
+L_exit:
+    ret;
+}

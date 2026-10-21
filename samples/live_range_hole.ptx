@@ -1,0 +1,52 @@
+.version 7.5
+.target sm_80
+.address_size 64
+
+.visible .entry live_range_hole(
+    .param .u64 in,
+    .param .u64 out,
+    .param .s32 mode
+)
+{
+    .reg .pred %p<2>;
+    .reg .b32 %r<6>;
+    .reg .b64 %rd<6>;
+    .reg .f32 %f<8>;
+
+    ld.param.s32 %r0, [mode];
+    mov.u32 %r1, %ctaid.x;
+    mov.u32 %r2, %ntid.x;
+    mov.u32 %r3, %tid.x;
+    mad.lo.s32 %r4, %r1, %r2, %r3;
+
+    ld.param.u64 %rd0, [in];
+    ld.param.u64 %rd1, [out];
+
+    mul.wide.s32 %rd2, %r4, 4;
+    add.s64 %rd3, %rd0, %rd2;
+    ld.global.f32 %f0, [%rd3];
+
+    // Defined before the if/else
+    fma.rn.f32 %f1, %f0, 2.5, 1.25;
+
+    setp.gt.s32 %p0, %r0, 0;
+    @%p0 bra L_then;
+
+L_else:
+    // %f1 is completely dead in this block!
+    add.f32 %f3, %f0, 10.0;
+    mul.f32 %f4, %f3, 1.5;
+    sub.f32 %f5, %f4, 4.0;
+    fma.rn.f32 %f6, %f5, %f3, %f4;
+    mov.f32 %f2, %f6;
+    bra L_exit;
+
+L_then:
+    // %f1 is used here
+    fma.rn.f32 %f2, %f1, 3.0, 0.5;
+
+L_exit:
+    add.s64 %rd4, %rd1, %rd2;
+    st.global.f32 [%rd4], %f2;
+    ret;
+}

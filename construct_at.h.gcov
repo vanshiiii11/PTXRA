@@ -1,0 +1,97 @@
+        -:    0:Source:/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/construct_at.h
+        -:    0:Graph:build-cov/CMakeFiles/ptxra_core.dir/src/lexer/Lexer.cpp.gcno
+        -:    0:Data:build-cov/CMakeFiles/ptxra_core.dir/src/lexer/Lexer.cpp.gcda
+        -:    0:Runs:1
+        -:    1:// -*- C++ -*-
+        -:    2://===----------------------------------------------------------------------===//
+        -:    3://
+        -:    4:// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+        -:    5:// See https://llvm.org/LICENSE.txt for license information.
+        -:    6:// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+        -:    7://
+        -:    8://===----------------------------------------------------------------------===//
+        -:    9:
+        -:   10:#ifndef _LIBCPP___MEMORY_CONSTRUCT_AT_H
+        -:   11:#define _LIBCPP___MEMORY_CONSTRUCT_AT_H
+        -:   12:
+        -:   13:#include <__assert>
+        -:   14:#include <__config>
+        -:   15:#include <__memory/addressof.h>
+        -:   16:#include <__new/placement_new_delete.h>
+        -:   17:#include <__type_traits/enable_if.h>
+        -:   18:#include <__type_traits/is_array.h>
+        -:   19:#include <__utility/declval.h>
+        -:   20:#include <__utility/forward.h>
+        -:   21:
+        -:   22:#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+        -:   23:#  pragma GCC system_header
+        -:   24:#endif
+        -:   25:
+        -:   26:_LIBCPP_PUSH_MACROS
+        -:   27:#include <__undef_macros>
+        -:   28:
+        -:   29:_LIBCPP_BEGIN_NAMESPACE_STD
+        -:   30:
+        -:   31:// construct_at
+        -:   32:
+        -:   33:#if _LIBCPP_STD_VER >= 20
+        -:   34:
+        -:   35:template <class _Tp, class... _Args, class = decltype(::new(std::declval<void*>()) _Tp(std::declval<_Args>()...))>
+        -:   36:_LIBCPP_HIDE_FROM_ABI constexpr _Tp* construct_at(_Tp* __location, _Args&&... __args) {
+        -:   37:  _LIBCPP_ASSERT_NON_NULL(__location != nullptr, "null pointer given to construct_at");
+        -:   38:  return ::new (static_cast<void*>(__location)) _Tp(std::forward<_Args>(__args)...);
+        -:   39:}
+        -:   40:
+        -:   41:#endif
+        -:   42:
+        -:   43:template <class _Tp, class... _Args, class = decltype(::new(std::declval<void*>()) _Tp(std::declval<_Args>()...))>
+      639:   44:_LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 _Tp* __construct_at(_Tp* __location, _Args&&... __args) {
+        -:   45:#if _LIBCPP_STD_VER >= 20
+        -:   46:  return std::construct_at(__location, std::forward<_Args>(__args)...);
+        -:   47:#else
+      639:   48:  return _LIBCPP_ASSERT_NON_NULL(__location != nullptr, "null pointer given to construct_at"),
+      639:   49:         ::new (static_cast<void*>(__location)) _Tp(std::forward<_Args>(__args)...);
+        -:   50:#endif
+        -:   51:}
+        -:   52:
+        -:   53:// destroy_at
+        -:   54:
+        -:   55:// The internal functions are available regardless of the language version (with the exception of the `__destroy_at`
+        -:   56:// taking an array).
+        -:   57:
+        -:   58:template <class _Tp, __enable_if_t<!is_array<_Tp>::value, int> = 0>
+     1278:   59:_LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 void __destroy_at(_Tp* __loc) {
+        -:   60:  _LIBCPP_ASSERT_NON_NULL(__loc != nullptr, "null pointer given to destroy_at");
+     1278:   61:  __loc->~_Tp();
+     1278:   62:}
+        -:   63:
+        -:   64:#if _LIBCPP_STD_VER >= 20
+        -:   65:template <class _Tp, __enable_if_t<is_array<_Tp>::value, int> = 0>
+        -:   66:_LIBCPP_HIDE_FROM_ABI constexpr void __destroy_at(_Tp* __loc) {
+        -:   67:  _LIBCPP_ASSERT_NON_NULL(__loc != nullptr, "null pointer given to destroy_at");
+        -:   68:  for (auto&& __val : *__loc)
+        -:   69:    std::__destroy_at(std::addressof(__val));
+        -:   70:}
+        -:   71:#endif
+        -:   72:
+        -:   73:#if _LIBCPP_STD_VER >= 17
+        -:   74:
+        -:   75:template <class _Tp, enable_if_t<!is_array_v<_Tp>, int> = 0>
+        -:   76:_LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 void destroy_at(_Tp* __loc) {
+        -:   77:  std::__destroy_at(__loc);
+        -:   78:}
+        -:   79:
+        -:   80:#  if _LIBCPP_STD_VER >= 20
+        -:   81:template <class _Tp, enable_if_t<is_array_v<_Tp>, int> = 0>
+        -:   82:_LIBCPP_HIDE_FROM_ABI constexpr void destroy_at(_Tp* __loc) {
+        -:   83:  std::__destroy_at(__loc);
+        -:   84:}
+        -:   85:#  endif
+        -:   86:
+        -:   87:#endif // _LIBCPP_STD_VER >= 17
+        -:   88:
+        -:   89:_LIBCPP_END_NAMESPACE_STD
+        -:   90:
+        -:   91:_LIBCPP_POP_MACROS
+        -:   92:
+        -:   93:#endif // _LIBCPP___MEMORY_CONSTRUCT_AT_H

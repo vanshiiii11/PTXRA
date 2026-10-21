@@ -1,0 +1,128 @@
+.version 7.5
+.target sm_80
+.address_size 64
+
+.visible .entry fma_chain(
+    .param .u64 in,
+    .param .u64 out
+)
+{
+    .reg .b32 %r<6>;
+    .reg .b64 %rd<8>;
+    .reg .f32 %f<50>;
+
+    mov.u32 %r1, %ctaid.x;
+    mov.u32 %r2, %ntid.x;
+    mov.u32 %r3, %tid.x;
+    mad.lo.s32 %r4, %r1, %r2, %r3;
+
+    ld.param.u64 %rd0, [in];
+    ld.param.u64 %rd1, [out];
+
+    mul.wide.s32 %rd2, %r4, 192;
+    add.s64 %rd3, %rd0, %rd2;
+
+    ld.global.f32 %f0, [%rd3+0];
+    ld.global.f32 %f1, [%rd3+4];
+    ld.global.f32 %f2, [%rd3+8];
+    ld.global.f32 %f3, [%rd3+12];
+    ld.global.f32 %f4, [%rd3+16];
+    ld.global.f32 %f5, [%rd3+20];
+    ld.global.f32 %f6, [%rd3+24];
+    ld.global.f32 %f7, [%rd3+28];
+    ld.global.f32 %f8, [%rd3+32];
+    ld.global.f32 %f9, [%rd3+36];
+    ld.global.f32 %f10, [%rd3+40];
+    ld.global.f32 %f11, [%rd3+44];
+    ld.global.f32 %f12, [%rd3+48];
+    ld.global.f32 %f13, [%rd3+52];
+    ld.global.f32 %f14, [%rd3+56];
+    ld.global.f32 %f15, [%rd3+60];
+    ld.global.f32 %f16, [%rd3+64];
+    ld.global.f32 %f17, [%rd3+68];
+    ld.global.f32 %f18, [%rd3+72];
+    ld.global.f32 %f19, [%rd3+76];
+    ld.global.f32 %f20, [%rd3+80];
+    ld.global.f32 %f21, [%rd3+84];
+    ld.global.f32 %f22, [%rd3+88];
+    ld.global.f32 %f23, [%rd3+92];
+    ld.global.f32 %f24, [%rd3+96];
+    ld.global.f32 %f25, [%rd3+100];
+    ld.global.f32 %f26, [%rd3+104];
+    ld.global.f32 %f27, [%rd3+108];
+    ld.global.f32 %f28, [%rd3+112];
+    ld.global.f32 %f29, [%rd3+116];
+    ld.global.f32 %f30, [%rd3+120];
+    ld.global.f32 %f31, [%rd3+124];
+    ld.global.f32 %f32, [%rd3+128];
+    ld.global.f32 %f33, [%rd3+132];
+    ld.global.f32 %f34, [%rd3+136];
+    ld.global.f32 %f35, [%rd3+140];
+    ld.global.f32 %f36, [%rd3+144];
+    ld.global.f32 %f37, [%rd3+148];
+    ld.global.f32 %f38, [%rd3+152];
+    ld.global.f32 %f39, [%rd3+156];
+    ld.global.f32 %f40, [%rd3+160];
+    ld.global.f32 %f41, [%rd3+164];
+    ld.global.f32 %f42, [%rd3+168];
+    ld.global.f32 %f43, [%rd3+172];
+    ld.global.f32 %f44, [%rd3+176];
+    ld.global.f32 %f45, [%rd3+180];
+    ld.global.f32 %f46, [%rd3+184];
+    ld.global.f32 %f47, [%rd3+188];
+
+    mov.f32 %f48, 0.0;
+    fma.rn.f32 %f48, %f48, 1.01, %f0;
+    fma.rn.f32 %f48, %f48, 1.01, %f1;
+    fma.rn.f32 %f48, %f48, 1.01, %f2;
+    fma.rn.f32 %f48, %f48, 1.01, %f3;
+    fma.rn.f32 %f48, %f48, 1.01, %f4;
+    fma.rn.f32 %f48, %f48, 1.01, %f5;
+    fma.rn.f32 %f48, %f48, 1.01, %f6;
+    fma.rn.f32 %f48, %f48, 1.01, %f7;
+    fma.rn.f32 %f48, %f48, 1.01, %f8;
+    fma.rn.f32 %f48, %f48, 1.01, %f9;
+    fma.rn.f32 %f48, %f48, 1.01, %f10;
+    fma.rn.f32 %f48, %f48, 1.01, %f11;
+    fma.rn.f32 %f48, %f48, 1.01, %f12;
+    fma.rn.f32 %f48, %f48, 1.01, %f13;
+    fma.rn.f32 %f48, %f48, 1.01, %f14;
+    fma.rn.f32 %f48, %f48, 1.01, %f15;
+    fma.rn.f32 %f48, %f48, 1.01, %f16;
+    fma.rn.f32 %f48, %f48, 1.01, %f17;
+    fma.rn.f32 %f48, %f48, 1.01, %f18;
+    fma.rn.f32 %f48, %f48, 1.01, %f19;
+    fma.rn.f32 %f48, %f48, 1.01, %f20;
+    fma.rn.f32 %f48, %f48, 1.01, %f21;
+    fma.rn.f32 %f48, %f48, 1.01, %f22;
+    fma.rn.f32 %f48, %f48, 1.01, %f23;
+    fma.rn.f32 %f48, %f48, 1.01, %f24;
+    fma.rn.f32 %f48, %f48, 1.01, %f25;
+    fma.rn.f32 %f48, %f48, 1.01, %f26;
+    fma.rn.f32 %f48, %f48, 1.01, %f27;
+    fma.rn.f32 %f48, %f48, 1.01, %f28;
+    fma.rn.f32 %f48, %f48, 1.01, %f29;
+    fma.rn.f32 %f48, %f48, 1.01, %f30;
+    fma.rn.f32 %f48, %f48, 1.01, %f31;
+    fma.rn.f32 %f48, %f48, 1.01, %f32;
+    fma.rn.f32 %f48, %f48, 1.01, %f33;
+    fma.rn.f32 %f48, %f48, 1.01, %f34;
+    fma.rn.f32 %f48, %f48, 1.01, %f35;
+    fma.rn.f32 %f48, %f48, 1.01, %f36;
+    fma.rn.f32 %f48, %f48, 1.01, %f37;
+    fma.rn.f32 %f48, %f48, 1.01, %f38;
+    fma.rn.f32 %f48, %f48, 1.01, %f39;
+    fma.rn.f32 %f48, %f48, 1.01, %f40;
+    fma.rn.f32 %f48, %f48, 1.01, %f41;
+    fma.rn.f32 %f48, %f48, 1.01, %f42;
+    fma.rn.f32 %f48, %f48, 1.01, %f43;
+    fma.rn.f32 %f48, %f48, 1.01, %f44;
+    fma.rn.f32 %f48, %f48, 1.01, %f45;
+    fma.rn.f32 %f48, %f48, 1.01, %f46;
+    fma.rn.f32 %f48, %f48, 1.01, %f47;
+
+    mul.wide.s32 %rd4, %r4, 4;
+    add.s64 %rd5, %rd1, %rd4;
+    st.global.f32 [%rd5], %f48;
+    ret;
+}

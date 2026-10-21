@@ -1,0 +1,406 @@
+        -:    0:Source:/Users/vanshi/Desktop/PTXRA/src/lexer/Lexer.cpp
+        -:    0:Graph:build-cov/CMakeFiles/ptxra_core.dir/src/lexer/Lexer.cpp.gcno
+        -:    0:Data:build-cov/CMakeFiles/ptxra_core.dir/src/lexer/Lexer.cpp.gcda
+        -:    0:Runs:1
+        -:    1:#include "Lexer.h"
+        -:    2:#include "../support/StringUtil.h"
+        -:    3:#include <cassert>
+        -:    4:#include <cctype>
+        -:    5:#include <unordered_map>
+        -:    6:
+        -:    7:namespace ptxra {
+        -:    8:
+        -:    9:// ============================================================
+        -:   10:// Static keyword table for dot-words
+        -:   11:// ============================================================
+        -:   12:
+     1330:   13:static const std::unordered_map<std::string, TokenKind>& dotKeywords() {
+     1330:   14:    static const std::unordered_map<std::string, TokenKind> table = {
+        9:   15:        {".version",      TokenKind::DotVersion},
+        9:   16:        {".target",       TokenKind::DotTarget},
+        9:   17:        {".address_size", TokenKind::DotAddressSize},
+        9:   18:        {".visible",      TokenKind::DotVisible},
+        9:   19:        {".entry",        TokenKind::DotEntry},
+        9:   20:        {".func",         TokenKind::DotFunc},
+        9:   21:        {".param",        TokenKind::DotParam},
+        9:   22:        {".reg",          TokenKind::DotReg},
+        9:   23:        {".shared",       TokenKind::DotShared},
+        9:   24:        {".global",       TokenKind::DotGlobal},
+        9:   25:        {".local",        TokenKind::DotLocal},
+        9:   26:        {".align",        TokenKind::DotAlign},
+        9:   27:        {".byte",         TokenKind::DotByte},
+        9:   28:        {".word",         TokenKind::DotWord},
+        9:   29:        {".u32",          TokenKind::DotU32},
+        9:   30:        {".u64",          TokenKind::DotU64},
+        9:   31:        {".s32",          TokenKind::DotS32},
+        9:   32:        {".s64",          TokenKind::DotS64},
+        9:   33:        {".b8",           TokenKind::DotB8},
+        9:   34:        {".b16",          TokenKind::DotB16},
+        9:   35:        {".b32",          TokenKind::DotB32},
+        9:   36:        {".b64",          TokenKind::DotB64},
+        9:   37:        {".u8",           TokenKind::DotU8},
+        9:   38:        {".u16",          TokenKind::DotU16},
+        9:   39:        {".s8",           TokenKind::DotS8},
+        9:   40:        {".s16",          TokenKind::DotS16},
+        9:   41:        {".f16",          TokenKind::DotF16},
+        9:   42:        {".f32",          TokenKind::DotF32},
+        9:   43:        {".f64",          TokenKind::DotF64},
+        9:   44:        {".pred",         TokenKind::DotPred},
+        9:   45:        {".v2",           TokenKind::DotV2},
+        9:   46:        {".v4",           TokenKind::DotV4},
+        9:   47:        {".lo",           TokenKind::DotLo},
+        9:   48:        {".hi",           TokenKind::DotHi},
+        9:   49:        {".wide",         TokenKind::DotWide},
+        9:   50:        {".rn",           TokenKind::DotRn},
+        9:   51:        {".rz",           TokenKind::DotRz},
+        9:   52:        {".rm",           TokenKind::DotRm},
+        9:   53:        {".rp",           TokenKind::DotRp},
+        9:   54:        {".ftz",          TokenKind::DotFtz},
+        9:   55:        {".sat",          TokenKind::DotSat},
+        9:   56:        {".eq",           TokenKind::DotEq},
+        9:   57:        {".ne",           TokenKind::DotNe},
+        9:   58:        {".lt",           TokenKind::DotLt},
+        9:   59:        {".le",           TokenKind::DotLe},
+        9:   60:        {".gt",           TokenKind::DotGt},
+        9:   61:        {".ge",           TokenKind::DotGe},
+        9:   62:        {".equ",          TokenKind::DotEqu},
+        9:   63:        {".neu",          TokenKind::DotNeu},
+        9:   64:        {".ltu",          TokenKind::DotLtu},
+        9:   65:        {".leu",          TokenKind::DotLeu},
+        9:   66:        {".gtu",          TokenKind::DotGtu},
+        9:   67:        {".geu",          TokenKind::DotGeu},
+        9:   68:        {".num",          TokenKind::DotNum},
+        9:   69:        {".nan",          TokenKind::DotNan},
+        9:   70:        {".ls",           TokenKind::DotLs},
+        9:   71:        {".hs",           TokenKind::DotHs},
+        9:   72:        {".generic",      TokenKind::DotGeneric},
+        9:   73:        {".and",          TokenKind::DotAnd},
+        9:   74:        {".or",           TokenKind::DotOr},
+        9:   75:        {".add",          TokenKind::DotAdd},
+        9:   76:        {".xor",          TokenKind::DotXor},
+        9:   77:        {".min",          TokenKind::DotMin},
+        9:   78:        {".max",          TokenKind::DotMax},
+        9:   79:        {".cas",          TokenKind::DotCas},
+        9:   80:        {".exch",         TokenKind::DotExch},
+        9:   81:        {".to",           TokenKind::DotTo},
+        9:   82:        {".sync",         TokenKind::DotSync},
+        9:   83:        {".cta",          TokenKind::DotCta},
+        9:   84:        {".gpu",          TokenKind::DotGpu},
+        9:   85:        {".sys",          TokenKind::DotSys},
+        -:   86:    };
+     1330:   87:    return table;
+    #####:   88:}
+        -:   89:
+     1330:   90:TokenKind Lexer::classifyDotWord(std::string_view word) {
+     1330:   91:    auto& table = dotKeywords();
+     1330:   92:    auto it = table.find(std::string(word));
+     1330:   93:    if (it != table.end()) return it->second;
+        -:   94:    // Unknown dot-word → treat as Identifier so the parser can error-recover
+    #####:   95:    return TokenKind::Identifier;
+     1330:   96:}
+        -:   97:
+        -:   98:// ============================================================
+        -:   99:// Constructor
+        -:  100:// ============================================================
+        -:  101:
+      132:  102:Lexer::Lexer(std::string source, std::string filename)
+      132:  103:    : src_(std::move(source)), filename_(std::move(filename)) {}
+        -:  104:
+        -:  105:// ============================================================
+        -:  106:// Character stream primitives
+        -:  107:// ============================================================
+        -:  108:
+    55127:  109:char Lexer::peek(int offset) const {
+    55127:  110:    std::size_t idx = pos_ + static_cast<std::size_t>(offset);
+    55127:  111:    if (idx >= src_.size()) return '\0';
+    55127:  112:    return src_[idx];
+    55127:  113:}
+        -:  114:
+    27151:  115:char Lexer::advance() {
+    27151:  116:    char c = src_[pos_++];
+    27151:  117:    if (c == '\n') { ++line_; col_ = 1; }
+    25872:  118:    else           { ++col_; }
+    27151:  119:    return c;
+        -:  120:}
+        -:  121:
+        -:  122:// ============================================================
+        -:  123:// Skip helpers
+        -:  124:// ============================================================
+        -:  125:
+       23:  126:void Lexer::skipLineComment() {
+        -:  127:    // Consume everything up to (but not including) the newline
+      373:  128:    while (!atEnd() && peek() != '\n') advance();
+       23:  129:}
+        -:  130:
+        1:  131:void Lexer::skipBlockComment() {
+        -:  132:    // Already consumed '/*'; consume until '*/'
+       16:  133:    while (!atEnd()) {
+       16:  134:        char c = advance();
+       16:  135:        if (c == '*' && peek() == '/') {
+        1:  136:            advance(); // consume '/'
+        1:  137:            return;
+        -:  138:        }
+        -:  139:    }
+        -:  140:    // EOF inside block comment — we just stop (parser will catch structural issues)
+    #####:  141:    diagnostics_.push_back(filename_ + ": unterminated block comment");
+        1:  142:}
+        -:  143:
+     8206:  144:void Lexer::skipWhitespace() {
+    15792:  145:    while (!atEnd() && std::isspace(static_cast<unsigned char>(peek()))) advance();
+     8206:  146:}
+        -:  147:
+        -:  148:// ============================================================
+        -:  149:// Number scanner
+        -:  150:// ============================================================
+        -:  151:
+      418:  152:Token Lexer::scanNumber() {
+      418:  153:    SourceLocation loc = here();
+      418:  154:    std::string text;
+        -:  155:
+        -:  156:    // Check for PTX hex-float literal: 0f... or 0d...
+      418:  157:    if (peek() == '0' && (peek(1) == 'f' || peek(1) == 'F' || peek(1) == 'd' || peek(1) == 'D')) {
+       30:  158:        return scanHexFloat();
+        -:  159:    }
+        -:  160:
+        -:  161:    // Hex integer: 0x...
+      388:  162:    if (peek() == '0' && (peek(1) == 'x' || peek(1) == 'X')) {
+      776:  163:        text += advance(); text += advance(); // "0x"
+    #####:  164:        while (!atEnd() && std::isxdigit(static_cast<unsigned char>(peek())))
+    #####:  165:            text += advance();
+    #####:  166:        return {TokenKind::IntLiteral, text, loc};
+        -:  167:    }
+        -:  168:
+        -:  169:    // Binary integer: 0b...
+     1104:  170:    if (peek() == '0' && (peek(1) == 'b' || peek(1) == 'B')) {
+       30:  171:        text += advance(); text += advance(); // "0b"
+    #####:  172:        while (!atEnd() && (peek() == '0' || peek() == '1'))
+    #####:  173:            text += advance();
+    #####:  174:        return {TokenKind::IntLiteral, text, loc};
+        -:  175:    }
+        -:  176:
+        -:  177:    // Decimal / float
+      358:  178:    bool isFloat = false;
+      887:  179:    while (!atEnd() && std::isdigit(static_cast<unsigned char>(peek())))
+      529:  180:        text += advance();
+        -:  181:
+      358:  182:    if (!atEnd() && peek() == '.') {
+        -:  183:        // Could be float or struct-access — check next char
+       59:  184:        if (std::isdigit(static_cast<unsigned char>(peek(1)))) {
+       59:  185:            isFloat = true;
+       59:  186:            text += advance(); // '.'
+      134:  187:            while (!atEnd() && std::isdigit(static_cast<unsigned char>(peek())))
+       75:  188:                text += advance();
+       59:  189:        }
+       59:  190:    }
+        -:  191:    // Exponent
+      358:  192:    if (!atEnd() && (peek() == 'e' || peek() == 'E')) {
+      358:  193:        isFloat = true;
+      358:  194:        text += advance();
+    #####:  195:        if (!atEnd() && (peek() == '+' || peek() == '-')) text += advance();
+    #####:  196:        while (!atEnd() && std::isdigit(static_cast<unsigned char>(peek())))
+    #####:  197:            text += advance();
+    #####:  198:    }
+    #####:  199:    return {isFloat ? TokenKind::FloatLiteral : TokenKind::IntLiteral, text, loc};
+     1910:  200:}
+        -:  201:
+    #####:  202:Token Lexer::scanHexFloat() {
+        -:  203:    // PTX hex float: 0f<8 hex digits> (single) or 0d<16 hex digits> (double)
+    #####:  204:    SourceLocation loc = here();
+    #####:  205:    std::string text;
+    #####:  206:    text += advance(); // '0'
+    #####:  207:    text += advance(); // 'f' or 'd'
+    #####:  208:    while (!atEnd() && std::isxdigit(static_cast<unsigned char>(peek())))
+    #####:  209:        text += advance();
+    #####:  210:    return {TokenKind::FloatLiteral, text, loc};
+    #####:  211:}
+        -:  212:
+        -:  213:// ============================================================
+        -:  214:// String scanner
+        -:  215:// ============================================================
+        -:  216:
+    #####:  217:Token Lexer::scanString() {
+    #####:  218:    SourceLocation loc = here();
+    #####:  219:    std::string text;
+    #####:  220:    text += advance(); // opening '"'
+    #####:  221:    while (!atEnd() && peek() != '"') {
+    #####:  222:        if (peek() == '\\') { text += advance(); } // escape
+    #####:  223:        text += advance();
+        -:  224:    }
+    #####:  225:    if (!atEnd()) text += advance(); // closing '"'
+    #####:  226:    return {TokenKind::StringLiteral, text, loc};
+    #####:  227:}
+        -:  228:
+        -:  229:// ============================================================
+        -:  230:// Identifier / keyword scanner
+        -:  231:// ============================================================
+        -:  232:
+     1070:  233:Token Lexer::scanIdentOrKeyword() {
+     1070:  234:    SourceLocation loc = here();
+     1070:  235:    std::string text;
+        -:  236:    // Identifiers may start with letter or underscore
+     9803:  237:    while (!atEnd() && (std::isalnum(static_cast<unsigned char>(peek()))
+     4901:  238:                        || peek() == '_' || peek() == '$'))
+     3832:  239:        text += advance();
+     1070:  240:    return {TokenKind::Identifier, text, loc};
+     1070:  241:}
+        -:  242:
+        -:  243:// ============================================================
+        -:  244:// Dot-word scanner (directive or type qualifier)
+        -:  245:// ============================================================
+        -:  246:
+     1330:  247:Token Lexer::scanDotWord() {
+     1330:  248:    SourceLocation loc = here();
+     1330:  249:    std::string text;
+     1330:  250:    text += advance(); // '.'
+    12050:  251:    while (!atEnd() && (std::isalnum(static_cast<unsigned char>(peek()))
+     6025:  252:                        || peek() == '_'))
+     4695:  253:        text += advance();
+     1330:  254:    TokenKind k = classifyDotWord(text);
+     1330:  255:    return {k, text, loc};
+     1330:  256:}
+        -:  257:
+        -:  258:// ============================================================
+        -:  259:// Register scanner: %name or %name<N>
+        -:  260:// ============================================================
+        -:  261:
+     1777:  262:Token Lexer::scanRegister() {
+     1777:  263:    SourceLocation loc = here();
+     1777:  264:    std::string text;
+     1777:  265:    text += advance(); // '%'
+        -:  266:    // Register name: letters, digits, underscore, dots (for %tid.x etc.)
+    11817:  267:    while (!atEnd() && (std::isalnum(static_cast<unsigned char>(peek()))
+     5908:  268:                        || peek() == '_' || peek() == '.'))
+     4132:  269:        text += advance();
+        -:  270:    // Angle-bracket range: %r<10> — consume but keep in text
+     1777:  271:    if (!atEnd() && peek() == '<') {
+       58:  272:        text += advance(); // '<'
+      135:  273:        while (!atEnd() && peek() != '>') text += advance();
+       58:  274:        if (!atEnd()) text += advance(); // '>'
+       58:  275:    }
+     1777:  276:    return {TokenKind::Register, text, loc};
+     1777:  277:}
+        -:  278:
+        -:  279:// ============================================================
+        -:  280:// Punctuation scanner
+        -:  281:// ============================================================
+        -:  282:
+     2533:  283:Token Lexer::scanPunct() {
+     2533:  284:    SourceLocation loc = here();
+     2533:  285:    char c = advance();
+     2533:  286:    std::string text(1, c);
+     2533:  287:    switch (c) {
+       40:  288:    case '(': return {TokenKind::LParen,    text, loc};
+       40:  289:    case ')': return {TokenKind::RParen,    text, loc};
+       40:  290:    case '{': return {TokenKind::LBrace,    text, loc};
+       40:  291:    case '}': return {TokenKind::RBrace,    text, loc};
+       80:  292:    case '[': return {TokenKind::LBracket,  text, loc};
+       80:  293:    case ']': return {TokenKind::RBracket,  text, loc};
+     1249:  294:    case ',': return {TokenKind::Comma,     text, loc};
+      915:  295:    case ';': return {TokenKind::Semicolon, text, loc};
+    #####:  296:    case ':': return {TokenKind::Colon,     text, loc};
+       32:  297:    case '@': return {TokenKind::At,        text, loc};
+        1:  298:    case '!': return {TokenKind::Bang,      text, loc};
+       16:  299:    case '+': return {TokenKind::Plus,      text, loc};
+    #####:  300:    case '-': return {TokenKind::Minus,     text, loc};
+    #####:  301:    case '*': return {TokenKind::Star,      text, loc};
+    #####:  302:    case '|': return {TokenKind::Pipe,      text, loc};
+    #####:  303:    case '&': return {TokenKind::Ampersand, text, loc};
+    #####:  304:    case '^': return {TokenKind::Caret,     text, loc};
+    #####:  305:    case '~': return {TokenKind::Tilde,     text, loc};
+    #####:  306:    case '=': return {TokenKind::Equals,    text, loc};
+    #####:  307:    case '<': return {TokenKind::AngleLt,   text, loc};
+    #####:  308:    case '>': return {TokenKind::AngleGt,   text, loc};
+        -:  309:    default:
+    #####:  310:        diagnostics_.push_back(loc.toString() + ": unexpected character '" + c + "'");
+    #####:  311:        return {TokenKind::Unknown, text, loc};
+        -:  312:    }
+     2533:  313:}
+        -:  314:
+        -:  315:// ============================================================
+        -:  316:// Main tokenize loop
+        -:  317:// ============================================================
+        -:  318:
+       44:  319:std::vector<Token> Lexer::tokenize() {
+       44:  320:    std::vector<Token> tokens;
+       44:  321:    tokens.reserve(src_.size() / 4); // rough estimate
+        -:  322:
+     7136:  323:    while (true) {
+     7136:  324:        skipWhitespace();
+     7136:  325:        if (atEnd()) break;
+        -:  326:
+     7092:  327:        char c = peek();
+        -:  328:
+        -:  329:        // Comments
+     7092:  330:        if (c == '/' && peek(1) == '/') {
+       23:  331:            skipLineComment();
+       23:  332:            continue;
+        -:  333:        }
+     7069:  334:        if (c == '/' && peek(1) == '*') {
+        1:  335:            advance(); advance(); // consume '/*'
+        1:  336:            skipBlockComment();
+        1:  337:            continue;
+        -:  338:        }
+        -:  339:
+        -:  340:        // Numbers (including hex/binary)
+     7068:  341:        if (std::isdigit(static_cast<unsigned char>(c))
+     7068:  342:            || (c == '-' && std::isdigit(static_cast<unsigned char>(peek(1))))) {
+      358:  343:            tokens.push_back(scanNumber());
+      358:  344:            continue;
+        -:  345:        }
+        -:  346:
+        -:  347:        // Dot-words (directives / type qualifiers)
+     6710:  348:        if (c == '.') {
+        -:  349:            // Peek ahead: if next char is alpha or underscore, it's a keyword
+     1330:  350:            char next = peek(1);
+     1330:  351:            if (std::isalpha(static_cast<unsigned char>(next)) || next == '_') {
+     1330:  352:                tokens.push_back(scanDotWord());
+     1330:  353:                continue;
+        -:  354:            }
+        -:  355:            // Bare dot: treat as punct (shouldn't normally appear)
+    #####:  356:            tokens.push_back(scanPunct());
+    #####:  357:            continue;
+        -:  358:        }
+        -:  359:
+        -:  360:        // Registers start with '%'
+     5380:  361:        if (c == '%') {
+     1777:  362:            tokens.push_back(scanRegister());
+     1777:  363:            continue;
+        -:  364:        }
+        -:  365:
+        -:  366:        // Identifiers and keywords
+     3603:  367:        if (std::isalpha(static_cast<unsigned char>(c)) || c == '_' || c == '$') {
+     1070:  368:            Token tok = scanIdentOrKeyword();
+        -:  369:            // Check if the identifier is immediately followed by ':' → it's a label
+     1070:  370:            skipWhitespace();
+     1070:  371:            if (!atEnd() && peek() == ':') {
+        -:  372:                // Consume the colon; the label token includes the name but not the colon
+        -:  373:                // We emit the label name as Identifier and the colon separately so the
+        -:  374:                // parser can detect "identifier followed by colon" as a label definition.
+       41:  375:                tokens.push_back(tok); // Identifier
+       41:  376:                tokens.push_back({TokenKind::Colon, ":", here()});
+       41:  377:                advance(); // consume ':'
+       41:  378:                continue;
+        -:  379:            }
+     1029:  380:            tokens.push_back(tok);
+     1029:  381:            continue;
+     1070:  382:        }
+        -:  383:
+        -:  384:        // String literals
+     2533:  385:        if (c == '"') {
+    #####:  386:            tokens.push_back(scanString());
+    #####:  387:            continue;
+        -:  388:        }
+        -:  389:
+        -:  390:        // All other single/double-char punctuation
+     2533:  391:        tokens.push_back(scanPunct());
+        -:  392:    }
+        -:  393:
+       44:  394:    tokens.push_back({TokenKind::Eof, "", here()});
+       44:  395:    return tokens;
+       44:  396:}
+        -:  397:
+    #####:  398:Token Lexer::makeToken(TokenKind k, std::string text, SourceLocation loc) const {
+    #####:  399:    return {k, std::move(text), std::move(loc)};
+    #####:  400:}
+        -:  401:
+        -:  402:} // namespace ptxra

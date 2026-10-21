@@ -1,0 +1,275 @@
+        -:    0:Source:/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/pointer_traits.h
+        -:    0:Graph:build-cov/CMakeFiles/ptxra_core.dir/src/lexer/Lexer.cpp.gcno
+        -:    0:Data:build-cov/CMakeFiles/ptxra_core.dir/src/lexer/Lexer.cpp.gcda
+        -:    0:Runs:1
+        -:    1:// -*- C++ -*-
+        -:    2://===----------------------------------------------------------------------===//
+        -:    3://
+        -:    4:// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+        -:    5:// See https://llvm.org/LICENSE.txt for license information.
+        -:    6:// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+        -:    7://
+        -:    8://===----------------------------------------------------------------------===//
+        -:    9:
+        -:   10:#ifndef _LIBCPP___MEMORY_POINTER_TRAITS_H
+        -:   11:#define _LIBCPP___MEMORY_POINTER_TRAITS_H
+        -:   12:
+        -:   13:#include <__config>
+        -:   14:#include <__cstddef/ptrdiff_t.h>
+        -:   15:#include <__memory/addressof.h>
+        -:   16:#include <__type_traits/conditional.h>
+        -:   17:#include <__type_traits/conjunction.h>
+        -:   18:#include <__type_traits/decay.h>
+        -:   19:#include <__type_traits/detected_or.h>
+        -:   20:#include <__type_traits/enable_if.h>
+        -:   21:#include <__type_traits/integral_constant.h>
+        -:   22:#include <__type_traits/is_class.h>
+        -:   23:#include <__type_traits/is_function.h>
+        -:   24:#include <__type_traits/is_void.h>
+        -:   25:#include <__type_traits/nat.h>
+        -:   26:#include <__type_traits/void_t.h>
+        -:   27:#include <__utility/declval.h>
+        -:   28:#include <__utility/forward.h>
+        -:   29:
+        -:   30:#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+        -:   31:#  pragma GCC system_header
+        -:   32:#endif
+        -:   33:
+        -:   34:_LIBCPP_PUSH_MACROS
+        -:   35:#include <__undef_macros>
+        -:   36:
+        -:   37:_LIBCPP_BEGIN_NAMESPACE_STD
+        -:   38:
+        -:   39:template <class _Ptr>
+        -:   40:struct __pointer_traits_element_type_impl {};
+        -:   41:
+        -:   42:template <template <class, class...> class _Sp, class _Tp, class... _Args>
+        -:   43:struct __pointer_traits_element_type_impl<_Sp<_Tp, _Args...> > {
+        -:   44:  using type _LIBCPP_NODEBUG = _Tp;
+        -:   45:};
+        -:   46:
+        -:   47:template <class _Ptr, class = void>
+        -:   48:struct __pointer_traits_element_type : __pointer_traits_element_type_impl<_Ptr> {};
+        -:   49:
+        -:   50:template <class _Ptr>
+        -:   51:struct __pointer_traits_element_type<_Ptr, __void_t<typename _Ptr::element_type> > {
+        -:   52:  using type _LIBCPP_NODEBUG = typename _Ptr::element_type;
+        -:   53:};
+        -:   54:
+        -:   55:template <class _Tp, class _Up>
+        -:   56:struct __pointer_traits_rebind_impl {
+        -:   57:  static_assert(false, "Cannot rebind pointer; did you forget to add a rebind member to your pointer?");
+        -:   58:};
+        -:   59:
+        -:   60:template <template <class, class...> class _Sp, class _Tp, class... _Args, class _Up>
+        -:   61:struct __pointer_traits_rebind_impl<_Sp<_Tp, _Args...>, _Up> {
+        -:   62:  using type _LIBCPP_NODEBUG = _Sp<_Up, _Args...>;
+        -:   63:};
+        -:   64:
+        -:   65:template <class _Tp, class _Up, class = void>
+        -:   66:struct __pointer_traits_rebind : __pointer_traits_rebind_impl<_Tp, _Up> {};
+        -:   67:
+        -:   68:template <class _Tp, class _Up>
+        -:   69:struct __pointer_traits_rebind<_Tp, _Up, __void_t<typename _Tp::template rebind<_Up> > > {
+        -:   70:#ifndef _LIBCPP_CXX03_LANG
+        -:   71:  using type _LIBCPP_NODEBUG = typename _Tp::template rebind<_Up>;
+        -:   72:#else
+        -:   73:  using type _LIBCPP_NODEBUG = typename _Tp::template rebind<_Up>::other;
+        -:   74:#endif
+        -:   75:};
+        -:   76:
+        -:   77:template <class _Tp>
+        -:   78:using __difference_type_member _LIBCPP_NODEBUG = typename _Tp::difference_type;
+        -:   79:
+        -:   80:template <class _Ptr, class = void>
+        -:   81:struct __pointer_traits_impl {};
+        -:   82:
+        -:   83:template <class _Ptr>
+        -:   84:struct __pointer_traits_impl<_Ptr, __void_t<typename __pointer_traits_element_type<_Ptr>::type> > {
+        -:   85:  typedef _Ptr pointer;
+        -:   86:  typedef typename __pointer_traits_element_type<pointer>::type element_type;
+        -:   87:  using difference_type = __detected_or_t<ptrdiff_t, __difference_type_member, pointer>;
+        -:   88:
+        -:   89:#ifndef _LIBCPP_CXX03_LANG
+        -:   90:  template <class _Up>
+        -:   91:  using rebind = typename __pointer_traits_rebind<pointer, _Up>::type;
+        -:   92:#else
+        -:   93:  template <class _Up>
+        -:   94:  struct rebind {
+        -:   95:    typedef typename __pointer_traits_rebind<pointer, _Up>::type other;
+        -:   96:  };
+        -:   97:#endif // _LIBCPP_CXX03_LANG
+        -:   98:
+        -:   99:public:
+        -:  100:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 static pointer
+        -:  101:  pointer_to(__conditional_t<is_void<element_type>::value, __nat, element_type>& __r) {
+        -:  102:    return pointer::pointer_to(__r);
+        -:  103:  }
+        -:  104:};
+        -:  105:
+        -:  106:template <class _Ptr>
+        -:  107:struct pointer_traits : __pointer_traits_impl<_Ptr> {};
+        -:  108:
+        -:  109:template <class _Tp>
+        -:  110:struct pointer_traits<_Tp*> {
+        -:  111:  typedef _Tp* pointer;
+        -:  112:  typedef _Tp element_type;
+        -:  113:  typedef ptrdiff_t difference_type;
+        -:  114:
+        -:  115:#ifndef _LIBCPP_CXX03_LANG
+        -:  116:  template <class _Up>
+        -:  117:  using rebind = _Up*;
+        -:  118:#else
+        -:  119:  template <class _Up>
+        -:  120:  struct rebind {
+        -:  121:    typedef _Up* other;
+        -:  122:  };
+        -:  123:#endif
+        -:  124:
+        -:  125:public:
+        -:  126:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 static pointer
+     5754:  127:  pointer_to(__conditional_t<is_void<element_type>::value, __nat, element_type>& __r) _NOEXCEPT {
+     5754:  128:    return std::addressof(__r);
+        -:  129:  }
+        -:  130:};
+        -:  131:
+        -:  132:#ifndef _LIBCPP_CXX03_LANG
+        -:  133:template <class _From, class _To>
+        -:  134:using __rebind_pointer_t _LIBCPP_NODEBUG = typename pointer_traits<_From>::template rebind<_To>;
+        -:  135:#else
+        -:  136:template <class _From, class _To>
+        -:  137:using __rebind_pointer_t _LIBCPP_NODEBUG = typename pointer_traits<_From>::template rebind<_To>::other;
+        -:  138:#endif
+        -:  139:
+        -:  140:// to_address
+        -:  141:
+        -:  142:template <class _Pointer, class = void>
+        -:  143:struct __to_address_helper;
+        -:  144:
+        -:  145:template <class _Tp>
+    #####:  146:_LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR _Tp* __to_address(_Tp* __p) _NOEXCEPT {
+        -:  147:  static_assert(!is_function<_Tp>::value, "_Tp is a function type");
+    #####:  148:  return __p;
+        -:  149:}
+        -:  150:
+        -:  151:template <class _Pointer, class = void>
+        -:  152:struct _HasToAddress : false_type {};
+        -:  153:
+        -:  154:template <class _Pointer>
+        -:  155:struct _HasToAddress<_Pointer, decltype((void)pointer_traits<_Pointer>::to_address(std::declval<const _Pointer&>())) >
+        -:  156:    : true_type {};
+        -:  157:
+        -:  158:template <class _Pointer, class = void>
+        -:  159:struct _HasArrow : false_type {};
+        -:  160:
+        -:  161:template <class _Pointer>
+        -:  162:struct _HasArrow<_Pointer, decltype((void)std::declval<const _Pointer&>().operator->()) > : true_type {};
+        -:  163:
+        -:  164:template <class _Pointer>
+        -:  165:struct _IsFancyPointer {
+        -:  166:  static const bool value = _HasArrow<_Pointer>::value || _HasToAddress<_Pointer>::value;
+        -:  167:};
+        -:  168:
+        -:  169:// enable_if is needed here to avoid instantiating checks for fancy pointers on raw pointers
+        -:  170:template <class _Pointer, __enable_if_t< _And<is_class<_Pointer>, _IsFancyPointer<_Pointer> >::value, int> = 0>
+        -:  171:_LIBCPP_HIDE_FROM_ABI
+        -:  172:_LIBCPP_CONSTEXPR __decay_t<decltype(__to_address_helper<_Pointer>::__call(std::declval<const _Pointer&>()))>
+        -:  173:__to_address(const _Pointer& __p) _NOEXCEPT {
+        -:  174:  return __to_address_helper<_Pointer>::__call(__p);
+        -:  175:}
+        -:  176:
+        -:  177:template <class _Pointer, class>
+        -:  178:struct __to_address_helper {
+        -:  179:  _LIBCPP_HIDE_FROM_ABI
+        -:  180:  _LIBCPP_CONSTEXPR static decltype(std::__to_address(std::declval<const _Pointer&>().operator->()))
+        -:  181:  __call(const _Pointer& __p) _NOEXCEPT {
+        -:  182:    return std::__to_address(__p.operator->());
+        -:  183:  }
+        -:  184:};
+        -:  185:
+        -:  186:template <class _Pointer>
+        -:  187:struct __to_address_helper<_Pointer,
+        -:  188:                           decltype((void)pointer_traits<_Pointer>::to_address(std::declval<const _Pointer&>()))> {
+        -:  189:  _LIBCPP_HIDE_FROM_ABI
+        -:  190:  _LIBCPP_CONSTEXPR static decltype(pointer_traits<_Pointer>::to_address(std::declval<const _Pointer&>()))
+        -:  191:  __call(const _Pointer& __p) _NOEXCEPT {
+        -:  192:    return pointer_traits<_Pointer>::to_address(__p);
+        -:  193:  }
+        -:  194:};
+        -:  195:
+        -:  196:#if _LIBCPP_STD_VER >= 20
+        -:  197:template <class _Tp>
+        -:  198:inline _LIBCPP_HIDE_FROM_ABI constexpr auto to_address(_Tp* __p) noexcept {
+        -:  199:  return std::__to_address(__p);
+        -:  200:}
+        -:  201:
+        -:  202:template <class _Pointer>
+        -:  203:inline _LIBCPP_HIDE_FROM_ABI constexpr auto to_address(const _Pointer& __p) noexcept
+        -:  204:    -> decltype(std::__to_address(__p)) {
+        -:  205:  return std::__to_address(__p);
+        -:  206:}
+        -:  207:#endif
+        -:  208:
+        -:  209:#if _LIBCPP_STD_VER >= 23
+        -:  210:
+        -:  211:template <class _Tp>
+        -:  212:struct __pointer_of {};
+        -:  213:
+        -:  214:template <class _Tp>
+        -:  215:concept __has_pointer_member = requires { typename _Tp::pointer; };
+        -:  216:
+        -:  217:template <class _Tp>
+        -:  218:concept __has_element_type_member = requires { typename _Tp::element_type; };
+        -:  219:
+        -:  220:template <class _Tp>
+        -:  221:  requires __has_pointer_member<_Tp>
+        -:  222:struct __pointer_of<_Tp> {
+        -:  223:  using type _LIBCPP_NODEBUG = typename _Tp::pointer;
+        -:  224:};
+        -:  225:
+        -:  226:template <class _Tp>
+        -:  227:  requires(!__has_pointer_member<_Tp> && __has_element_type_member<_Tp>)
+        -:  228:struct __pointer_of<_Tp> {
+        -:  229:  using type _LIBCPP_NODEBUG = typename _Tp::element_type*;
+        -:  230:};
+        -:  231:
+        -:  232:template <class _Tp>
+        -:  233:  requires(!__has_pointer_member<_Tp> && !__has_element_type_member<_Tp> &&
+        -:  234:           __has_element_type_member<pointer_traits<_Tp>>)
+        -:  235:struct __pointer_of<_Tp> {
+        -:  236:  using type _LIBCPP_NODEBUG = typename pointer_traits<_Tp>::element_type*;
+        -:  237:};
+        -:  238:
+        -:  239:template <typename _Tp>
+        -:  240:using __pointer_of_t _LIBCPP_NODEBUG = typename __pointer_of<_Tp>::type;
+        -:  241:
+        -:  242:template <typename _Tp, typename _Up>
+        -:  243:using __pointer_of_or_t _LIBCPP_NODEBUG = __detected_or_t<_Up, __pointer_of_t, _Tp>;
+        -:  244:
+        -:  245:template <class _Smart>
+        -:  246:concept __resettable_smart_pointer = requires(_Smart __s) { __s.reset(); };
+        -:  247:
+        -:  248:template <class _Smart, class _Pointer, class... _Args>
+        -:  249:concept __resettable_smart_pointer_with_args = requires(_Smart __s, _Pointer __p, _Args... __args) {
+        -:  250:  __s.reset(static_cast<__pointer_of_or_t<_Smart, _Pointer>>(__p), std::forward<_Args>(__args)...);
+        -:  251:};
+        -:  252:
+        -:  253:#endif
+        -:  254:
+        -:  255:// This function ensures safe conversions between fancy pointers at compile-time, where we avoid casts from/to
+        -:  256:// `__void_pointer` by obtaining the underlying raw pointer from the fancy pointer using `std::to_address`,
+        -:  257:// then dereferencing it to retrieve the pointed-to object, and finally constructing the target fancy pointer
+        -:  258:// to that object using the `std::pointer_traits<>::pinter_to` function.
+        -:  259:template <class _PtrTo, class _PtrFrom>
+        -:  260:_LIBCPP_CONSTEXPR_SINCE_CXX20 _LIBCPP_HIDE_FROM_ABI _PtrTo __static_fancy_pointer_cast(const _PtrFrom& __p) {
+        -:  261:  using __ptr_traits   = pointer_traits<_PtrTo>;
+        -:  262:  using __element_type = typename __ptr_traits::element_type;
+        -:  263:  return __p ? __ptr_traits::pointer_to(*static_cast<__element_type*>(std::addressof(*__p)))
+        -:  264:             : static_cast<_PtrTo>(nullptr);
+        -:  265:}
+        -:  266:
+        -:  267:_LIBCPP_END_NAMESPACE_STD
+        -:  268:
+        -:  269:_LIBCPP_POP_MACROS
+        -:  270:
+        -:  271:#endif // _LIBCPP___MEMORY_POINTER_TRAITS_H

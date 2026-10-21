@@ -1,0 +1,62 @@
+        -:    0:Source:/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__algorithm/max.h
+        -:    0:Graph:build-cov/CMakeFiles/ptxra_core.dir/src/lexer/Lexer.cpp.gcno
+        -:    0:Data:build-cov/CMakeFiles/ptxra_core.dir/src/lexer/Lexer.cpp.gcda
+        -:    0:Runs:1
+        -:    1://===----------------------------------------------------------------------===//
+        -:    2://
+        -:    3:// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+        -:    4:// See https://llvm.org/LICENSE.txt for license information.
+        -:    5:// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+        -:    6://
+        -:    7://===----------------------------------------------------------------------===//
+        -:    8:
+        -:    9:#ifndef _LIBCPP___ALGORITHM_MAX_H
+        -:   10:#define _LIBCPP___ALGORITHM_MAX_H
+        -:   11:
+        -:   12:#include <__algorithm/comp.h>
+        -:   13:#include <__algorithm/comp_ref_type.h>
+        -:   14:#include <__algorithm/max_element.h>
+        -:   15:#include <__config>
+        -:   16:#include <initializer_list>
+        -:   17:
+        -:   18:#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+        -:   19:#  pragma GCC system_header
+        -:   20:#endif
+        -:   21:
+        -:   22:_LIBCPP_PUSH_MACROS
+        -:   23:#include <__undef_macros>
+        -:   24:
+        -:   25:_LIBCPP_BEGIN_NAMESPACE_STD
+        -:   26:
+        -:   27:template <class _Tp, class _Compare>
+        -:   28:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX14 const _Tp&
+    20325:   29:max(_LIBCPP_LIFETIMEBOUND const _Tp& __a, _LIBCPP_LIFETIMEBOUND const _Tp& __b, _Compare __comp) {
+    20325:   30:  return __comp(__a, __b) ? __b : __a;
+        -:   31:}
+        -:   32:
+        -:   33:template <class _Tp>
+        -:   34:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX14 const _Tp&
+    20325:   35:max(_LIBCPP_LIFETIMEBOUND const _Tp& __a, _LIBCPP_LIFETIMEBOUND const _Tp& __b) {
+    20325:   36:  return std::max(__a, __b, __less<>());
+        -:   37:}
+        -:   38:
+        -:   39:#ifndef _LIBCPP_CXX03_LANG
+        -:   40:
+        -:   41:template <class _Tp, class _Compare>
+        -:   42:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX14 _Tp
+        -:   43:max(initializer_list<_Tp> __t, _Compare __comp) {
+        -:   44:  return *std::__max_element<__comp_ref_type<_Compare> >(__t.begin(), __t.end(), __comp);
+        -:   45:}
+        -:   46:
+        -:   47:template <class _Tp>
+        -:   48:[[__nodiscard__]] inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX14 _Tp max(initializer_list<_Tp> __t) {
+        -:   49:  return *std::max_element(__t.begin(), __t.end(), __less<>());
+        -:   50:}
+        -:   51:
+        -:   52:#endif // _LIBCPP_CXX03_LANG
+        -:   53:
+        -:   54:_LIBCPP_END_NAMESPACE_STD
+        -:   55:
+        -:   56:_LIBCPP_POP_MACROS
+        -:   57:
+        -:   58:#endif // _LIBCPP___ALGORITHM_MAX_H

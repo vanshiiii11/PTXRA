@@ -1,0 +1,83 @@
+.version 7.5
+.target sm_80
+.address_size 64
+
+.visible .entry stencil_2d(
+    .param .u64 in,
+    .param .u64 out,
+    .param .u32 width,
+    .param .u32 height
+)
+{
+    .reg .pred %p<6>;
+    .reg .b32 %r<16>;
+    .reg .b64 %rd<14>;
+    .reg .f32 %f<8>;
+
+    ld.param.u32 %r0, [width];
+    ld.param.u32 %r1, [height];
+
+    mov.u32 %r2, %ctaid.x;
+    mov.u32 %r3, %ntid.x;
+    mov.u32 %r4, %tid.x;
+    mad.lo.s32 %r5, %r2, %r3, %r4; // x
+
+    mov.u32 %r6, %ctaid.y;
+    mov.u32 %r7, %ntid.y;
+    mov.u32 %r8, %tid.y;
+    mad.lo.s32 %r9, %r6, %r7, %r8; // y
+
+    setp.le.s32 %p0, %r5, 0;
+    @%p0 bra L_exit;
+    sub.s32 %r10, %r0, 1;
+    setp.ge.s32 %p1, %r5, %r10;
+    @%p1 bra L_exit;
+
+    setp.le.s32 %p2, %r9, 0;
+    @%p2 bra L_exit;
+    sub.s32 %r11, %r1, 1;
+    setp.ge.s32 %p3, %r9, %r11;
+    @%p3 bra L_exit;
+
+    // idx = y * width + x
+    mad.lo.s32 %r12, %r9, %r0, %r5;
+
+    ld.param.u64 %rd0, [in];
+    ld.param.u64 %rd1, [out];
+
+    mul.wide.s32 %rd2, %r12, 4;
+    add.s64 %rd3, %rd0, %rd2;
+    ld.global.f32 %f0, [%rd3]; // center
+
+    sub.s32 %r13, %r12, 1;
+    mul.wide.s32 %rd4, %r13, 4;
+    add.s64 %rd5, %rd0, %rd4;
+    ld.global.f32 %f1, [%rd5]; // left
+
+    add.s32 %r14, %r12, 1;
+    mul.wide.s32 %rd6, %r14, 4;
+    add.s64 %rd7, %rd0, %rd6;
+    ld.global.f32 %f2, [%rd7]; // right
+
+    sub.s32 %r15, %r12, %r0;
+    mul.wide.s32 %rd8, %r15, 4;
+    add.s64 %rd9, %rd0, %rd8;
+    ld.global.f32 %f3, [%rd9]; // top
+
+    add.s32 %r15, %r12, %r0;
+    mul.wide.s32 %rd10, %r15, 4;
+    add.s64 %rd11, %rd0, %rd10;
+    ld.global.f32 %f4, [%rd11]; // bottom
+
+    add.f32 %f5, %f0, %f1;
+    add.f32 %f5, %f5, %f2;
+    add.f32 %f5, %f5, %f3;
+    add.f32 %f5, %f5, %f4;
+    mul.f32 %f6, %f5, 0.2;
+
+    add.s64 %rd12, %rd1, %rd2;
+    st.global.f32 [%rd12], %f6;
+
+L_exit:
+    ret;
+}

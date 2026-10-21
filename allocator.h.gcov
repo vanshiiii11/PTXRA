@@ -1,0 +1,181 @@
+        -:    0:Source:/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/include/c++/v1/__memory/allocator.h
+        -:    0:Graph:build-cov/CMakeFiles/ptxra_core.dir/src/lexer/Lexer.cpp.gcno
+        -:    0:Data:build-cov/CMakeFiles/ptxra_core.dir/src/lexer/Lexer.cpp.gcda
+        -:    0:Runs:1
+        -:    1:// -*- C++ -*-
+        -:    2://===----------------------------------------------------------------------===//
+        -:    3://
+        -:    4:// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+        -:    5:// See https://llvm.org/LICENSE.txt for license information.
+        -:    6:// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+        -:    7://
+        -:    8://===----------------------------------------------------------------------===//
+        -:    9:
+        -:   10:#ifndef _LIBCPP___MEMORY_ALLOCATOR_H
+        -:   11:#define _LIBCPP___MEMORY_ALLOCATOR_H
+        -:   12:
+        -:   13:#include <__config>
+        -:   14:#include <__cstddef/ptrdiff_t.h>
+        -:   15:#include <__cstddef/size_t.h>
+        -:   16:#include <__memory/addressof.h>
+        -:   17:#include <__memory/allocate_at_least.h>
+        -:   18:#include <__memory/allocator_traits.h>
+        -:   19:#include <__new/allocate.h>
+        -:   20:#include <__new/exceptions.h>
+        -:   21:#include <__type_traits/is_const.h>
+        -:   22:#include <__type_traits/is_constant_evaluated.h>
+        -:   23:#include <__type_traits/is_same.h>
+        -:   24:#include <__type_traits/is_void.h>
+        -:   25:#include <__type_traits/is_volatile.h>
+        -:   26:#include <__utility/forward.h>
+        -:   27:
+        -:   28:#if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+        -:   29:#  pragma GCC system_header
+        -:   30:#endif
+        -:   31:
+        -:   32:_LIBCPP_BEGIN_NAMESPACE_STD
+        -:   33:
+        -:   34:template <class _Tp>
+        -:   35:class allocator;
+        -:   36:
+        -:   37:#if _LIBCPP_STD_VER <= 17
+        -:   38:// These specializations shouldn't be marked _LIBCPP_DEPRECATED_IN_CXX17.
+        -:   39:// Specializing allocator<void> is deprecated, but not using it.
+        -:   40:template <>
+        -:   41:class allocator<void> {
+        -:   42:public:
+        -:   43:  _LIBCPP_DEPRECATED_IN_CXX17 typedef void* pointer;
+        -:   44:  _LIBCPP_DEPRECATED_IN_CXX17 typedef const void* const_pointer;
+        -:   45:  _LIBCPP_DEPRECATED_IN_CXX17 typedef void value_type;
+        -:   46:
+        -:   47:  template <class _Up>
+        -:   48:  struct _LIBCPP_DEPRECATED_IN_CXX17 rebind {
+        -:   49:    typedef allocator<_Up> other;
+        -:   50:  };
+        -:   51:};
+        -:   52:#endif // _LIBCPP_STD_VER <= 17
+        -:   53:
+        -:   54:// This class provides a non-trivial default constructor to the class that derives from it
+        -:   55:// if the condition is satisfied.
+        -:   56://
+        -:   57:// The second template parameter exists to allow giving a unique type to __non_trivial_if,
+        -:   58:// which makes it possible to avoid breaking the ABI when making this a base class of an
+        -:   59:// existing class. Without that, imagine we have classes D1 and D2, both of which used to
+        -:   60:// have no base classes, but which now derive from __non_trivial_if. The layout of a class
+        -:   61:// that inherits from both D1 and D2 will change because the two __non_trivial_if base
+        -:   62:// classes are not allowed to share the same address.
+        -:   63://
+        -:   64:// By making those __non_trivial_if base classes unique, we work around this problem and
+        -:   65:// it is safe to start deriving from __non_trivial_if in existing classes.
+        -:   66:template <bool _Cond, class _Unique>
+        -:   67:struct __non_trivial_if {};
+        -:   68:
+        -:   69:template <class _Unique>
+        -:   70:struct __non_trivial_if<true, _Unique> {
+      243:   71:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR __non_trivial_if() _NOEXCEPT {}
+        -:   72:};
+        -:   73:
+        -:   74:// allocator
+        -:   75://
+        -:   76:// Note: For ABI compatibility between C++20 and previous standards, we make
+        -:   77://       allocator<void> trivial in C++20.
+        -:   78:
+        -:   79:template <class _Tp>
+        -:   80:class allocator : private __non_trivial_if<!is_void<_Tp>::value, allocator<_Tp> > {
+        -:   81:  static_assert(!is_const<_Tp>::value, "std::allocator does not support const types");
+        -:   82:  static_assert(!is_volatile<_Tp>::value, "std::allocator does not support volatile types");
+        -:   83:
+        -:   84:public:
+        -:   85:  typedef size_t size_type;
+        -:   86:  typedef ptrdiff_t difference_type;
+        -:   87:  typedef _Tp value_type;
+        -:   88:  typedef true_type propagate_on_container_move_assignment;
+        -:   89:#if _LIBCPP_STD_VER <= 23 || defined(_LIBCPP_ENABLE_CXX26_REMOVED_ALLOCATOR_MEMBERS)
+        -:   90:  _LIBCPP_DEPRECATED_IN_CXX23 typedef true_type is_always_equal;
+        -:   91:#endif
+        -:   92:
+      486:   93:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 allocator() _NOEXCEPT = default;
+        -:   94:
+        -:   95:  template <class _Up>
+        -:   96:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 allocator(const allocator<_Up>&) _NOEXCEPT {}
+        -:   97:
+      860:   98:  [[__nodiscard__]] _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 _Tp* allocate(size_t __n) {
+        -:   99:    static_assert(sizeof(_Tp) >= 0, "cannot allocate memory for an incomplete type");
+      860:  100:    if (__n > allocator_traits<allocator>::max_size(*this))
+    #####:  101:      std::__throw_bad_array_new_length();
+        -:  102:    if (__libcpp_is_constant_evaluated()) {
+        -:  103:      return static_cast<_Tp*>(::operator new(__n * sizeof(_Tp)));
+        -:  104:    } else {
+      860:  105:      return std::__libcpp_allocate<_Tp>(__element_count(__n));
+        -:  106:    }
+        -:  107:  }
+        -:  108:
+        -:  109:#if _LIBCPP_STD_VER >= 23
+        -:  110:  [[nodiscard]] _LIBCPP_HIDE_FROM_ABI constexpr allocation_result<_Tp*> allocate_at_least(size_t __n) {
+        -:  111:    static_assert(sizeof(_Tp) >= 0, "cannot allocate memory for an incomplete type");
+        -:  112:    return {allocate(__n), __n};
+        -:  113:  }
+        -:  114:#endif
+        -:  115:
+      693:  116:  _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 void deallocate(_Tp* __p, size_t __n) _NOEXCEPT {
+        -:  117:    if (__libcpp_is_constant_evaluated()) {
+        -:  118:      ::operator delete(__p);
+        -:  119:    } else {
+      693:  120:      std::__libcpp_deallocate<_Tp>(__p, __element_count(__n));
+        -:  121:    }
+      693:  122:  }
+        -:  123:
+        -:  124:  // C++20 Removed members
+        -:  125:#if _LIBCPP_STD_VER <= 17
+        -:  126:  _LIBCPP_DEPRECATED_IN_CXX17 typedef _Tp* pointer;
+        -:  127:  _LIBCPP_DEPRECATED_IN_CXX17 typedef const _Tp* const_pointer;
+        -:  128:  _LIBCPP_DEPRECATED_IN_CXX17 typedef _Tp& reference;
+        -:  129:  _LIBCPP_DEPRECATED_IN_CXX17 typedef const _Tp& const_reference;
+        -:  130:
+        -:  131:  template <class _Up>
+        -:  132:  struct _LIBCPP_DEPRECATED_IN_CXX17 rebind {
+        -:  133:    typedef allocator<_Up> other;
+        -:  134:  };
+        -:  135:
+        -:  136:  _LIBCPP_DEPRECATED_IN_CXX17 _LIBCPP_HIDE_FROM_ABI pointer address(reference __x) const _NOEXCEPT {
+        -:  137:    return std::addressof(__x);
+        -:  138:  }
+        -:  139:  _LIBCPP_DEPRECATED_IN_CXX17 _LIBCPP_HIDE_FROM_ABI const_pointer address(const_reference __x) const _NOEXCEPT {
+        -:  140:    return std::addressof(__x);
+        -:  141:  }
+        -:  142:
+        -:  143:  [[__nodiscard__]] _LIBCPP_HIDE_FROM_ABI _LIBCPP_DEPRECATED_IN_CXX17 _Tp* allocate(size_t __n, const void*) {
+        -:  144:    return allocate(__n);
+        -:  145:  }
+        -:  146:
+     1074:  147:  _LIBCPP_DEPRECATED_IN_CXX17 _LIBCPP_HIDE_FROM_ABI size_type max_size() const _NOEXCEPT {
+     1074:  148:    return size_type(~0) / sizeof(_Tp);
+        -:  149:  }
+        -:  150:
+        -:  151:  template <class _Up, class... _Args>
+    12426:  152:  _LIBCPP_DEPRECATED_IN_CXX17 _LIBCPP_HIDE_FROM_ABI void construct(_Up* __p, _Args&&... __args) {
+    12426:  153:    ::new ((void*)__p) _Up(std::forward<_Args>(__args)...);
+    12426:  154:  }
+        -:  155:
+    #####:  156:  _LIBCPP_DEPRECATED_IN_CXX17 _LIBCPP_HIDE_FROM_ABI void destroy(pointer __p) { __p->~_Tp(); }
+        -:  157:#endif
+        -:  158:};
+        -:  159:
+        -:  160:template <class _Tp, class _Up>
+        -:  161:inline _LIBCPP_HIDE_FROM_ABI _LIBCPP_CONSTEXPR_SINCE_CXX20 bool
+        -:  162:operator==(const allocator<_Tp>&, const allocator<_Up>&) _NOEXCEPT {
+        -:  163:  return true;
+        -:  164:}
+        -:  165:
+        -:  166:#if _LIBCPP_STD_VER <= 17
+        -:  167:
+        -:  168:template <class _Tp, class _Up>
+        -:  169:inline _LIBCPP_HIDE_FROM_ABI bool operator!=(const allocator<_Tp>&, const allocator<_Up>&) _NOEXCEPT {
+        -:  170:  return false;
+        -:  171:}
+        -:  172:
+        -:  173:#endif
+        -:  174:
+        -:  175:_LIBCPP_END_NAMESPACE_STD
+        -:  176:
+        -:  177:#endif // _LIBCPP___MEMORY_ALLOCATOR_H

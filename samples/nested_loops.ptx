@@ -1,0 +1,81 @@
+.version 7.5
+.target sm_80
+.address_size 64
+
+.visible .entry nested_loops(
+    .param .u64 A,
+    .param .u64 B,
+    .param .u64 C,
+    .param .u32 N,
+    .param .u32 M
+)
+{
+    .reg .pred %p<4>;
+    .reg .b32 %r<12>;
+    .reg .b64 %rd<10>;
+    .reg .f32 %f<12>;
+
+    ld.param.u32 %r0, [N];
+    ld.param.u32 %r1, [M];
+    mov.u32 %r2, %ctaid.x;
+    mov.u32 %r3, %ntid.x;
+    mov.u32 %r4, %tid.x;
+    mad.lo.s32 %r5, %r2, %r3, %r4;
+
+    setp.ge.s32 %p0, %r5, %r0;
+    @%p0 bra L_exit;
+
+    ld.param.u64 %rd0, [A];
+    ld.param.u64 %rd1, [B];
+    ld.param.u64 %rd2, [C];
+
+    mov.f32 %f0, 0.0;
+    mov.f32 %f1, 1.0;
+    mov.f32 %f2, 2.0;
+    mov.f32 %f3, 3.0;
+
+    mov.u32 %r6, 0;
+
+L_outer_loop:
+    setp.ge.s32 %p1, %r6, %r0;
+    @%p1 bra L_outer_end;
+
+    mul.wide.s32 %rd3, %r6, 4;
+    add.s64 %rd4, %rd0, %rd3;
+    ld.global.f32 %f4, [%rd4];
+
+    mov.u32 %r7, 0;
+
+L_inner_loop:
+    setp.ge.s32 %p2, %r7, %r1;
+    @%p2 bra L_inner_end;
+
+    mul.wide.s32 %rd5, %r7, 4;
+    add.s64 %rd6, %rd1, %rd5;
+    ld.global.f32 %f5, [%rd6];
+
+    fma.rn.f32 %f0, %f4, %f5, %f0;
+    add.f32 %f6, %f4, %f5;
+    add.f32 %f1, %f1, %f6;
+    fma.rn.f32 %f2, %f2, 1.01, %f5;
+    fma.rn.f32 %f3, %f3, 0.99, %f4;
+
+    add.s32 %r7, %r7, 1;
+    bra L_inner_loop;
+
+L_inner_end:
+    add.s32 %r6, %r6, 1;
+    bra L_outer_loop;
+
+L_outer_end:
+    add.f32 %f7, %f0, %f1;
+    add.f32 %f8, %f2, %f3;
+    add.f32 %f9, %f7, %f8;
+
+    mul.wide.s32 %rd7, %r5, 4;
+    add.s64 %rd8, %rd2, %rd7;
+    st.global.f32 [%rd8], %f9;
+
+L_exit:
+    ret;
+}

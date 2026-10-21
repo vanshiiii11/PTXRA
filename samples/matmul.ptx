@@ -1,0 +1,111 @@
+.version 7.5
+.target sm_80
+.address_size 64
+
+.visible .entry matmul(
+    .param .u64 A,
+    .param .u64 B,
+    .param .u64 C,
+    .param .u32 width
+)
+{
+    .shared .align 4 .b8 sA[1024];
+    .shared .align 4 .b8 sB[1024];
+
+    .reg .pred %p<6>;
+    .reg .b32 %r<24>;
+    .reg .b64 %rd<14>;
+    .reg .f32 %f<8>;
+
+    ld.param.u32 %r0, [width];
+    mov.u32 %r1, %tid.x;
+    mov.u32 %r2, %tid.y;
+    mov.u32 %r3, %ctaid.x;
+    mov.u32 %r4, %ctaid.y;
+
+    shl.b32 %r5, %r4, 4;
+    add.s32 %r6, %r5, %r2;    // row = blockIdx.y * 16 + ty
+    shl.b32 %r7, %r3, 4;
+    add.s32 %r8, %r7, %r1;    // col = blockIdx.x * 16 + tx
+
+    mov.f32 %f0, 0.0;         // sum = 0.0
+    mov.u32 %r9, 0;           // t = 0
+    shr.s32 %r10, %r0, 4;     // num_tiles = width / 16
+
+    ld.param.u64 %rd0, [A];
+    ld.param.u64 %rd1, [B];
+    ld.param.u64 %rd2, [C];
+
+L_tile_loop:
+    setp.ge.s32 %p0, %r9, %r10;
+    @%p0 bra L_tile_end;
+
+    // A[row * width + t * 16 + tx]
+    mul.lo.s32 %r11, %r6, %r0;
+    shl.b32 %r12, %r9, 4;
+    add.s32 %r11, %r11, %r12;
+    add.s32 %r11, %r11, %r1;
+    mul.wide.s32 %rd3, %r11, 4;
+    add.s64 %rd4, %rd0, %rd3;
+    ld.global.f32 %f1, [%rd4];
+
+    // sA[ty][tx]
+    shl.b32 %r13, %r2, 4;
+    add.s32 %r13, %r13, %r1;
+    shl.b32 %r13, %r13, 2;
+    st.shared.f32 [%r13], %f1;
+
+    // B[(t * 16 + ty) * width + col]
+    add.s32 %r14, %r12, %r2;
+    mul.lo.s32 %r14, %r14, %r0;
+    add.s32 %r14, %r14, %r8;
+    mul.wide.s32 %rd5, %r14, 4;
+    add.s64 %rd6, %rd1, %rd5;
+    ld.global.f32 %f2, [%rd6];
+
+    // sB[ty][tx]
+    st.shared.f32 [%r13], %f2;
+
+    bar.sync 0;
+
+    // Inner k loop (0..15)
+    mov.u32 %r15, 0;
+
+L_k_loop:
+    setp.ge.s32 %p1, %r15, 16;
+    @%p1 bra L_k_end;
+
+    shl.b32 %r16, %r2, 4;
+    add.s32 %r16, %r16, %r15;
+    shl.b32 %r16, %r16, 2;
+    ld.shared.f32 %f3, [%r16];
+
+    shl.b32 %r17, %r15, 4;
+    add.s32 %r17, %r17, %r1;
+    shl.b32 %r17, %r17, 2;
+    ld.shared.f32 %f4, [%r17];
+
+    fma.rn.f32 %f0, %f3, %f4, %f0;
+    add.s32 %r15, %r15, 1;
+    bra L_k_loop;
+
+L_k_end:
+    bar.sync 0;
+    add.s32 %r9, %r9, 1;
+    bra L_tile_loop;
+
+L_tile_end:
+    setp.ge.s32 %p2, %r6, %r0;
+    @%p2 bra L_exit;
+    setp.ge.s32 %p3, %r8, %r0;
+    @%p3 bra L_exit;
+
+    mul.lo.s32 %r18, %r6, %r0;
+    add.s32 %r18, %r18, %r8;
+    mul.wide.s32 %rd7, %r18, 4;
+    add.s64 %rd8, %rd2, %rd7;
+    st.global.f32 [%rd8], %f0;
+
+L_exit:
+    ret;
+}

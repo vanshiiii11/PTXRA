@@ -1,0 +1,73 @@
+.version 7.5
+.target sm_80
+.address_size 64
+
+.visible .entry block_reduce(
+    .param .u64 g_idata,
+    .param .u64 g_odata,
+    .param .u32 n
+)
+{
+    .shared .align 4 .b32 sdata[256];
+    .reg .pred %p<4>;
+    .reg .b32 %r<12>;
+    .reg .b64 %rd<8>;
+
+    ld.param.u32 %r0, [n];
+    mov.u32 %r1, %tid.x;
+    mov.u32 %r2, %ctaid.x;
+    mov.u32 %r3, %ntid.x;
+    mad.lo.s32 %r4, %r2, %r3, %r1;
+
+    setp.ge.s32 %p0, %r4, %r0;
+    @%p0 bra L_zero;
+
+    ld.param.u64 %rd0, [g_idata];
+    mul.wide.s32 %rd1, %r4, 4;
+    add.s64 %rd2, %rd0, %rd1;
+    ld.global.u32 %r5, [%rd2];
+    bra L_store_shared;
+
+L_zero:
+    mov.u32 %r5, 0;
+
+L_store_shared:
+    shl.b32 %r6, %r1, 2;
+    st.shared.u32 [%r6], %r5;
+    bar.sync 0;
+
+    // s = ntid.x / 2
+    shr.u32 %r7, %r3, 1;
+
+L_loop:
+    setp.eq.s32 %p1, %r7, 0;
+    @%p1 bra L_loop_end;
+
+    setp.ge.u32 %p2, %r1, %r7;
+    @%p2 bra L_sync_step;
+
+    add.s32 %r8, %r1, %r7;
+    shl.b32 %r9, %r8, 2;
+    ld.shared.u32 %r10, [%r9];
+    ld.shared.u32 %r11, [%r6];
+    add.s32 %r11, %r11, %r10;
+    st.shared.u32 [%r6], %r11;
+
+L_sync_step:
+    bar.sync 0;
+    shr.u32 %r7, %r7, 1;
+    bra L_loop;
+
+L_loop_end:
+    setp.ne.s32 %p3, %r1, 0;
+    @%p3 bra L_exit;
+
+    ld.param.u64 %rd3, [g_odata];
+    mul.wide.s32 %rd4, %r2, 4;
+    add.s64 %rd5, %rd3, %rd4;
+    ld.shared.u32 %r11, [0];
+    st.global.u32 [%rd5], %r11;
+
+L_exit:
+    ret;
+}
