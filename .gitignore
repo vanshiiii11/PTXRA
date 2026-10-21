@@ -4,4 +4,4 @@ build-*/
 *.gcda
 *.gcno
 .DS_Store
-EOF
+EOF*.gcov
